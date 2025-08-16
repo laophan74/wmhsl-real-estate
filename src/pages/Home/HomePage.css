@@ -1,0 +1,27 @@
+.home-contact-form {
+  background: #cb2a2a;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.home-contact-form input,
+.home-contact-form textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+.home-contact-form button {
+  background: #0077ff;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  /* transition: background 0.2s; */
+}
+.home-contact-form button:hover {
+  background: #005fcc;
+}
