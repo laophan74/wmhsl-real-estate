@@ -1,10 +1,24 @@
+@media (max-width: 900px) {
+  .lead-card .MuiGrid-container {
+    flex-direction: column !important;
+  }
+  .lead-card .MuiGrid-item {
+    width: 100% !important;
+    max-width: 100% !important;
+    flex-basis: 100% !important;
+  }
+  .lead-card form {
+    margin-bottom: 64px;
+  }
+}
 /* overall hero section */
 .home-hero {
   width: 100%;
   min-height: 500px;
-  height: 100vh;
+  min-height: 100vh;
   background: #ffffff;
   display: flex;
+  flex-direction: column;
 }
 
 /* 2-column layout; MUI handles the grid responsiveness */
@@ -33,6 +47,15 @@
   padding: 0;
   flex: 1 1 0;
   max-width: 100%;
+  position: relative;
+}
+@media (max-width: 900px) {
+  .form-col {
+    padding-bottom: 100px !important;
+  }
+  .lead-card {
+    padding-bottom: 32px !important;
+  }
 }
 
 .lead-card {
@@ -73,10 +96,18 @@
   .form-col {
     flex: 1 1 100%;
     max-width: 100%;
+    padding-bottom: 48px;
   }
   .lead-card {
     box-shadow: none;
     border: none;
+  }
+  .lead-card .MuiGrid-container {
+    flex-direction: column !important;
+  }
+  .lead-card .MuiGrid-item {
+    width: 100% !important;
+    max-width: 100% !important;
   }
 }
 
