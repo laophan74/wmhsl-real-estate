@@ -1,8 +1,23 @@
-.top-bar {
-  background-color: #1976d2;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.topbar {
+  border-bottom: 1px solid #e5e7eb; 
+  background: #ffffff;
 }
 
-.top-bar .MuiButton-root {
-  margin-left: 10px;
+.topbar-link {
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  color: #111827;  
+}
+
+.topbar-link:hover {
+  background: #f3f4f6; 
+}
+
+.stone-logo {
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  font-size: 1rem;
+  color: #111827;
+  border: 2px solid #111827;
+  padding: 8px 10px;
 }
