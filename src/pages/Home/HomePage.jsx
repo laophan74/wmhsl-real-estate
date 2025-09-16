@@ -75,8 +75,19 @@ export default function HomePage() {
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
-                    <FormControl>
+                    <FormControl style={{ paddingRight: '10px' }}>
                       <FormLabel>Are you interested in selling a property?</FormLabel>
+                      <RadioGroup
+                        row
+                        value={selling}
+                        onChange={(e) => setSelling(e.target.value)}
+                      >
+                        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+                        <FormControlLabel value="no" control={<Radio />} label="No" />
+                      </RadioGroup>
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Are you interested in buying a property?</FormLabel>
                       <RadioGroup
                         row
                         value={selling}

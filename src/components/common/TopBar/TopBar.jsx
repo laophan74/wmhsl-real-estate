@@ -15,13 +15,8 @@ import MenuIcon from "@mui/icons-material/Menu";
 import "./TopBar.css";
 
 const navLinks = [
-  { label: "PROPERTY REPORT", to: "/properties" },
-  { label: "BUY", to: "/properties?type=buy" },
-  { label: "SELL", to: "/properties?type=sell" },
-  { label: "RENT", to: "/properties?type=rent" },
-  { label: "ABOUT US", to: "/about" },
-  { label: "JOIN US", to: "/join" },
-  { label: "CONTACT", to: "/contact" },
+  { label: "Dashboard", to: "/dashboard" },
+  { label: "Login", to: "/login" },
 ];
 
 export default function TopBar() {
