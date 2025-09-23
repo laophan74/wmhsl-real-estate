@@ -39,8 +39,9 @@ export default function HomePage() {
         email: (formData.get("email") || "").toLowerCase(),
         phone: (formData.get("phone") || "").trim(),
         suburb: formData.get("suburb") || "",
-        timeframe: formData.get("timeframe") || "",
-  interested: formData.get("interested") || "no",
+    timeframe: formData.get("timeframe") || "",
+    interested: formData.get("interested") || "no",
+    interested_buying: formData.get("interested_buying") || "no",
       };
 
       const res = await fetch(
