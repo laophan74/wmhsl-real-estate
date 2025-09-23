@@ -1,4 +1,3 @@
-
 import * as React from "react";
 import {
   Box,
@@ -23,11 +22,59 @@ import "./HomePage.css";
 export default function HomePage() {
   const [selling, setSelling] = React.useState("no");
   const [timeframe, setTimeframe] = React.useState("");
+  const [buying, setBuying] = React.useState("no");
+  const [submitting, setSubmitting] = React.useState(false);
+  const [statusMessage, setStatusMessage] = React.useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: send to backend (axios) or service
-    alert("Submitted! (wire this up to your API)");
+    setStatusMessage("");
+    setSubmitting(true);
+    try {
+      const formEl = e.target;
+      const formData = new FormData(formEl);
+      const payload = {
+        first_name: (formData.get("first_name") || "").trim(),
+        last_name: (formData.get("last_name") || "").trim(),
+        email: (formData.get("email") || "").toLowerCase(),
+        phone: (formData.get("phone") || "").trim(),
+        suburb: formData.get("suburb") || "",
+        timeframe: formData.get("timeframe") || "",
+  interested: formData.get("interested") || "no",
+      };
+
+      const res = await fetch(
+        "https://wmhsl-real-estate-backend.vercel.app/api/v1/leads/public",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Server error ${res.status}: ${text}`);
+      }
+
+      const body = await res.json();
+      // body may contain { reused, lead_id, score }
+      if (body.reused) {
+        setStatusMessage(`Lead already exists (id: ${body.lead_id}).`);
+      } else {
+        setStatusMessage(`Lead created (id: ${body.lead_id}). Thank you!`);
+        // reset form
+        formEl.reset();
+        setSelling("no");
+        setTimeframe("");
+        setBuying("no");
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusMessage(`Failed to submit form: ${err.message}`);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -59,37 +106,39 @@ export default function HomePage() {
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
-                    <TextField label="First Name" fullWidth required />
+                    <TextField name="first_name" label="First Name" fullWidth required />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField label="Last Name" fullWidth required />
+                    <TextField name="last_name" label="Last Name" fullWidth required />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField label="Email Address" type="email" fullWidth required />
+                    <TextField name="email" label="Email Address" type="email" fullWidth required />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField label="Phone Number" fullWidth required />
+                    <TextField name="phone" label="Phone Number" fullWidth required />
                   </Grid>
-                  <Grid item xs={12}>
-                    <TextField label="Suburb" fullWidth />
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <InputLabel id="suburb-label">Suburb</InputLabel>
+                      <Select
+                        labelId="suburb-label"
+                        name="suburb"
+                        defaultValue="Asquith"
+                        label="Suburb"
+                      >
+                        <MenuItem value="Asquith">Asquith</MenuItem>
+                        <MenuItem value="Hornsby">Hornsby</MenuItem>
+                        <MenuItem value="Waitara">Waitara</MenuItem>
+                      </Select>
+                    </FormControl>
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
-                    <FormControl style={{ paddingRight: '10px' }}>
+                    <FormControl fullWidth>
                       <FormLabel>Are you interested in selling a property?</FormLabel>
                       <RadioGroup
                         row
-                        value={selling}
-                        onChange={(e) => setSelling(e.target.value)}
-                      >
-                        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
-                        <FormControlLabel value="no" control={<Radio />} label="No" />
-                      </RadioGroup>
-                    </FormControl>
-                    <FormControl>
-                      <FormLabel>Are you interested in buying a property?</FormLabel>
-                      <RadioGroup
-                        row
+                        name="interested"
                         value={selling}
                         onChange={(e) => setSelling(e.target.value)}
                       >
@@ -101,20 +150,34 @@ export default function HomePage() {
 
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
-                      <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                        What is your expected timeframe for selling?
-                      </Typography>
+                      <FormLabel>Are you interested in buying a property?</FormLabel>
+                      <RadioGroup
+                        row
+                        name="interested_buying"
+                        value={buying}
+                        onChange={(e) => setBuying(e.target.value)}
+                      >
+                        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+                        <FormControlLabel value="no" control={<Radio />} label="No" />
+                      </RadioGroup>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <FormLabel>What is your expected timeframe for selling?</FormLabel>
                       <Select
+                        name="timeframe"
                         value={timeframe}
                         onChange={(e) => setTimeframe(e.target.value)}
                         displayEmpty
                         sx={{ minWidth: 200 }}
                       >
                         <MenuItem value=""><em>Choose…</em></MenuItem>
-                        <MenuItem value="1m">~ 1 Month</MenuItem>
-                        <MenuItem value="3m">~ 3 Months</MenuItem>
-                        <MenuItem value="6m">~ 6 Months</MenuItem>
-                        <MenuItem value="12m">~ 12+ Months</MenuItem>
+                        <MenuItem value="1-3 months">1-3 months</MenuItem>
+                        <MenuItem value="3-6 months">3-6 months</MenuItem>
+                        <MenuItem value="6+ months">6+ months</MenuItem>
+                        <MenuItem value="not sure">Not sure</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -129,9 +192,16 @@ export default function HomePage() {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <Button type="submit" variant="contained" className="submit-btn">
-                      Submit
+                    <Button type="submit" variant="contained" className="submit-btn" disabled={submitting}>
+                      {submitting ? "Submitting…" : "Submit"}
                     </Button>
+                  </Grid>
+                  <Grid item xs={12}>
+                    {statusMessage && (
+                      <Typography variant="body2" sx={{ mt: 1, color: statusMessage.startsWith("Failed") ? 'error.main' : 'success.main' }}>
+                        {statusMessage}
+                      </Typography>
+                    )}
                   </Grid>
                 </Grid>
               </Box>
