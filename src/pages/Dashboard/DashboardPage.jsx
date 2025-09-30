@@ -85,10 +85,11 @@ export default function DashboardPage() {
         const url = `${BASE_URL}/api/v1/admins?limit=${pageSize}&offset=${offset}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const batch = await res.json();
-        if (!Array.isArray(batch) || batch.length === 0) break;
-        all.push(...batch);
-        if (batch.length < pageSize) break;
+        const json = await res.json();
+        const list = Array.isArray(json) ? json : (Array.isArray(json?.value) ? json.value : []);
+        if (!Array.isArray(list) || list.length === 0) break;
+        all.push(...list);
+        if (list.length < pageSize) break;
         offset += pageSize;
       }
       setAdmins(all);
@@ -223,9 +224,9 @@ export default function DashboardPage() {
                   <thead>
                     <tr>
                       <th>#</th>
+                      <th>Username</th>
                       <th>Name</th>
                       <th>Email</th>
-                      <th>Role</th>
                       <th>Created</th>
                     </tr>
                   </thead>
@@ -233,9 +234,9 @@ export default function DashboardPage() {
                     {admins.map((a, idx) => (
                       <tr key={a.id || a.admin_id || idx}>
                         <td className="mono">{idx + 1}</td>
-                        <td>{a.name || a.full_name || `${a.first_name || ""} ${a.last_name || ""}`}</td>
-                        <td>{a.email || a.contact?.email}</td>
-                        <td>{a.role || a.roles?.join(", ")}</td>
+                        <td>{a.username || "-"}</td>
+                        <td>{`${a.first_name || ""} ${a.last_name || ""}`.trim()}</td>
+                        <td>{a.email || "-"}</td>
                         <td>{formatDate(a.metadata?.created_at || a.created_at) || "-"}</td>
                       </tr>
                     ))}
