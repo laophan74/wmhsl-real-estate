@@ -33,17 +33,28 @@ function formatDate(value) {
 
 // Extract numeric score from different possible locations in a lead object
 function getLeadScore(lead) {
-  const raw = lead?.score ?? lead?.metadata?.score ?? lead?.metadata?.lead_score ?? lead?.metadata?.custom_fields?.score ?? lead?.contact?.score;
+  const raw =
+    lead?.score ??
+    lead?.metadata?.score ??
+    lead?.metadata?.lead_score ??
+    lead?.metadata?.custom_fields?.score ??
+    lead?.metadata?.custom_fields?.lead_score ??
+    lead?.contact?.score ??
+    lead?.contact?.lead_score;
   const num = typeof raw === "string" ? Number(raw) : raw;
   return typeof num === "number" && !isNaN(num) ? num : undefined;
 }
 
-// Map score to category: =75 -> HOT, =50 -> WARM, <50 -> COLD, otherwise '-'
+// Map score to category: >=75 -> HOT, >=50 -> WARM, else (<50) -> COLD; fallback to any textual category
 function getLeadCategory(lead) {
   const score = getLeadScore(lead);
-  if (score === 75) return "HOT";
-  if (score === 50) return "WARM";
-  if (typeof score === "number" && score < 50) return "COLD";
+  if (typeof score === "number") {
+    if (score >= 75) return "HOT";
+    if (score >= 50) return "WARM";
+    return "COLD";
+  }
+  const rawCat = lead?.category || lead?.metadata?.category || lead?.contact?.category;
+  if (rawCat) return String(rawCat).toUpperCase();
   return "-";
 }
 
