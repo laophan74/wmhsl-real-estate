@@ -123,11 +123,18 @@ export default function HomePage() {
   <Grid item xs={12} md={7} lg={8} className="form-col">
           <Card className="lead-card" elevation={0} sx={{ boxShadow: 'none', border: 'none' }}>
             <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-              {/* Intro text removed as requested */}
-
               {!showSubmittedMessage ? (
-              <Box component="form" onSubmit={handleSubmit}>
-                <Grid container spacing={2}>
+                <>
+                  <Typography variant="h4" className="lead-title" gutterBottom>
+                    Thank you for your interest in Stone Real Estate.
+                  </Typography>
+
+                  <Typography variant="body1" sx={{ mb: 3, color: "#4b5563" }}>
+                    Please fill out the form, we will get in touch with you soon.
+                  </Typography>
+
+                  <Box component="form" onSubmit={handleSubmit}>
+                    <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
                     <TextField name="first_name" label="First Name" fullWidth required />
                   </Grid>
@@ -214,23 +221,35 @@ export default function HomePage() {
                     </Typography>
                   </Grid>
 
-                  <Grid item xs={12}>
-                    <Button type="submit" variant="contained" className="submit-btn" disabled={submitting}>
-                      {submitting ? "Submitting…" : "Submit"}
-                    </Button>
-                  </Grid>
-                  <Grid item xs={12}>
-                    {statusMessage && (
-                      <Typography variant="body2" sx={{ mt: 1, color: statusMessage.startsWith("Failed") ? 'error.main' : 'success.main' }}>
-                        {statusMessage}
-                      </Typography>
-                    )}
-                  </Grid>
-                </Grid>
-              </Box>
+                      <Grid item xs={12}>
+                        <Button type="submit" variant="contained" className="submit-btn" disabled={submitting}>
+                          {submitting ? "Submitting…" : "Submit"}
+                        </Button>
+                      </Grid>
+                      <Grid item xs={12}>
+                        {statusMessage && (
+                          <Typography variant="body2" sx={{ mt: 1, color: statusMessage.startsWith("Failed") ? 'error.main' : 'success.main' }}>
+                            {statusMessage}
+                          </Typography>
+                        )}
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </>
               ) : (
-                <Box className="submitted-message-container">
-                  <Typography className="submitted-message">
+                <Box sx={{ minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                  <Typography
+                    sx={{
+                      fontFamily: 'Poppins, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                      fontSize: { xs: '1.5rem', sm: '2rem', md: '2.25rem' },
+                      fontWeight: 800,
+                      lineHeight: 1.3,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.03em',
+                      color: '#111827',
+                      whiteSpace: 'pre-wrap',
+                    }}
+                  >
                     {submittedMessageText}
                   </Typography>
                 </Box>
