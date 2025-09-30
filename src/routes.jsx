@@ -4,6 +4,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import LoginPage from "./pages/Login/LoginPage";
 import HomePage from "./pages/Home/HomePage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
+import ProfilePage from "./pages/Profile/ProfilePage";
 import { AdminRoute } from "./auth/AdminRoute";
 
 const router = createBrowserRouter([
@@ -20,6 +21,11 @@ const router = createBrowserRouter([
     </ProtectedRoute>
   ) },
   { path: "/login", element: <LoginPage /> },
+  { path: "/profile", element: (
+    <ProtectedRoute>
+      <ProfilePage />
+    </ProtectedRoute>
+  ) },
     ],
   },
 ]);

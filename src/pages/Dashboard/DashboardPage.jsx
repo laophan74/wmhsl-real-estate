@@ -324,13 +324,6 @@ export default function DashboardPage() {
         <header className="dashboard-header">
           <h2>{TABS.find((t) => t.key === active)?.label}</h2>
           <div className="header-actions">
-            {user && (
-              <span style={{ marginRight: 8, color: '#6b7280', fontSize: 13 }}>
-                Signed in as {user.email || user.username || user.id}
-              </span>
-            )}
-            <button className="btn gray" onClick={refreshMe} style={{ marginRight: 8 }}>Check session</button>
-            <button className="btn danger" onClick={logout} style={{ marginRight: 8 }}>Logout</button>
             {active === "leads" && (
               <button className="btn" onClick={fetchLeads}>Refresh</button>
             )}
