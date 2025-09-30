@@ -18,9 +18,10 @@ import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import "./TopBar.css";
 import { useAuth } from "../../../auth/useAuth";
+import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
 
 const navLinks = [
-  { label: "Dashboard", to: "/dashboard" },
+  // Additional text links can be added here
 ];
 
 export default function TopBar() {
@@ -50,6 +51,11 @@ export default function TopBar() {
 
           {/* Desktop nav */}
           <Box sx={{ ml: "auto", display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
+            {/* Dashboard icon link */}
+            <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard">
+              <SpaceDashboardOutlinedIcon />
+            </IconButton>
+            {/* Other text links if any */}
             {navLinks.map((item) => (
               <Button key={item.label} component={RouterLink} to={item.to} className="topbar-link">
                 {item.label}
@@ -97,6 +103,12 @@ export default function TopBar() {
       <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
         <Box sx={{ width: 280 }} role="presentation" onClick={() => setOpen(false)}>
           <List>
+            {/* Explicit Dashboard entry for mobile drawer */}
+            <ListItem disablePadding>
+              <ListItemButton component={RouterLink} to="/dashboard">
+                <ListItemText primary="Dashboard" />
+              </ListItemButton>
+            </ListItem>
             {navLinks.map((item) => (
               <ListItem disablePadding key={item.label}>
                 <ListItemButton component={RouterLink} to={item.to}>
