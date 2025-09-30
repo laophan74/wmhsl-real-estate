@@ -19,6 +19,7 @@ import Divider from "@mui/material/Divider";
 import "./TopBar.css";
 import { useAuth } from "../../../auth/useAuth";
 import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
+import LoginIcon from "@mui/icons-material/Login";
 
 const navLinks = [
   // Additional text links can be added here
@@ -62,7 +63,9 @@ export default function TopBar() {
               </Button>
             ))}
             {!user ? (
-              <Button component={RouterLink} to="/login" className="topbar-link">Login</Button>
+              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
+                <LoginIcon />
+              </IconButton>
             ) : (
               <>
                 <IconButton aria-label="account" onClick={handleMenuOpen} size="large">
@@ -86,7 +89,9 @@ export default function TopBar() {
           {/* Burger button (mobile) */}
           <Box sx={{ ml: "auto", display: { xs: "inline-flex", md: "none" }, alignItems: "center", gap: 1 }}>
             {!user ? (
-              <Button component={RouterLink} to="/login" className="topbar-link">Login</Button>
+              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
+                <LoginIcon />
+              </IconButton>
             ) : (
               <IconButton aria-label="account" onClick={handleMenuOpen} size="large">
                 <AccountCircleIcon />
