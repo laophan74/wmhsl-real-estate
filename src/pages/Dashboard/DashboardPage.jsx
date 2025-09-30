@@ -37,16 +37,30 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
+
+  // Fetch all leads using paginated requests (limit 100, increasing offset) until empty batch
   const fetchLeads = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("https://wmhsl-real-estate-backend.vercel.app/api/v1/leads?limit=10");
-      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-      const data = await res.json();
-      setLeads(Array.isArray(data) ? data : []);
+      const pageSize = 100;
+      let offset = 0;
+      const all = [];
+      while (true) {
+        const url = `${BASE_URL}/api/v1/leads?limit=${pageSize}&offset=${offset}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const batch = await res.json();
+        if (!Array.isArray(batch) || batch.length === 0) break;
+        all.push(...batch);
+        if (batch.length < pageSize) break; // no more pages
+        offset += pageSize;
+      }
+      setLeads(all);
     } catch (err) {
       setError(err.message || "Failed to load leads");
+      setLeads([]);
     } finally {
       setLoading(false);
     }
