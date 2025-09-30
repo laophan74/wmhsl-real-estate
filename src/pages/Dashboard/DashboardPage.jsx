@@ -113,10 +113,11 @@ export default function DashboardPage() {
         const url = `${BASE_URL}/api/v1/messages?limit=${pageSize}&offset=${offset}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const batch = await res.json();
-        if (!Array.isArray(batch) || batch.length === 0) break;
-        all.push(...batch);
-        if (batch.length < pageSize) break;
+        const json = await res.json();
+        const list = Array.isArray(json) ? json : (Array.isArray(json?.value) ? json.value : []);
+        if (!Array.isArray(list) || list.length === 0) break;
+        all.push(...list);
+        if (list.length < pageSize) break;
         offset += pageSize;
       }
       setMessages(all);
@@ -259,26 +260,19 @@ export default function DashboardPage() {
                   <thead>
                     <tr>
                       <th>#</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Subject</th>
                       <th>Message</th>
-                      <th>Created</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {messages.map((m, idx) => (
-                      <tr key={m.id || m.message_id || idx}>
-                        <td className="mono">{idx + 1}</td>
-                        <td>{m.name || `${m.first_name || m.contact?.first_name || ""} ${m.last_name || m.contact?.last_name || ""}`}</td>
-                        <td>{m.email || m.contact?.email}</td>
-                        <td>{m.phone || m.contact?.phone}</td>
-                        <td>{m.subject || m.title || "-"}</td>
-                        <td>{(m.message || m.content || m.body || "").toString().slice(0, 80)}{(m.message || m.content || m.body || "").length > 80 ? "…" : ""}</td>
-                        <td>{formatDate(m.metadata?.created_at || m.created_at) || "-"}</td>
-                      </tr>
-                    ))}
+                    {messages.map((m, idx) => {
+                      const text = (m.message ?? m.content ?? m.body ?? "").toString();
+                      return (
+                        <tr key={m.id || m.message_id || idx}>
+                          <td className="mono">{idx + 1}</td>
+                          <td>{text}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
