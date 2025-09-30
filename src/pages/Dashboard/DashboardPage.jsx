@@ -70,6 +70,9 @@ export default function DashboardPage() {
   const [adminsError, setAdminsError] = useState(null);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState(null);
+  // Message edit modal state
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [messageForm, setMessageForm] = useState({ message: "", tags: "", edited_by: "" });
 
   // Edit modal state
   const [editingLead, setEditingLead] = useState(null); // the full lead object being edited
@@ -164,6 +167,69 @@ export default function DashboardPage() {
   };
 
   const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
+
+  // Message edit helpers
+  const openEditMessage = (msg) => {
+    const text = (msg?.message ?? msg?.content ?? msg?.body ?? "").toString();
+    const tagsArr = Array.isArray(msg?.metadata?.tags) ? msg.metadata.tags : [];
+    const editedBy = msg?.metadata?.custom_fields?.edited_by || "";
+    setEditingMessage(msg);
+    setMessageForm({
+      message: text,
+      tags: tagsArr.join(", "),
+      edited_by: editedBy,
+    });
+  };
+
+  const closeEditMessage = () => setEditingMessage(null);
+  const onMessageFormChange = (e) => {
+    const { name, value } = e.target;
+    setMessageForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const saveEditMessage = async () => {
+    if (!editingMessage) return;
+    const msgId = editingMessage.id || editingMessage.message_id || editingMessage.text_id;
+    if (!msgId) return;
+    const body = { message: messageForm.message };
+    const tags = messageForm.tags
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    const meta = {};
+    if (tags.length > 0) meta.tags = tags;
+    if (messageForm.edited_by && messageForm.edited_by.trim() !== "") {
+      meta.custom_fields = { edited_by: messageForm.edited_by.trim() };
+    }
+    if (Object.keys(meta).length > 0) body.metadata = meta;
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/messages/${msgId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status} ${text}`);
+      }
+      let updated;
+      try { updated = await res.json(); } catch (_) { updated = null; }
+      setMessages((list) => list.map((m) => {
+        const mid = m.id || m.message_id || m.text_id;
+        if (mid !== msgId) return m;
+        const newMeta = updated?.metadata || m.metadata;
+        return {
+          ...m,
+          message: updated?.message ?? messageForm.message,
+          metadata: newMeta,
+        };
+      }));
+      closeEditMessage();
+    } catch (err) {
+      alert(`Failed to update message: ${err.message}`);
+    }
+  };
 
   // Fetch all leads using paginated requests (limit 100, increasing offset) until empty batch
   const fetchLeads = async () => {
@@ -399,7 +465,12 @@ export default function DashboardPage() {
                       return (
                         <tr key={m.id || m.message_id || idx}>
                           <td className="mono">{idx + 1}</td>
-                          <td>{text}</td>
+                          <td>
+                            <div className="inline-actions">
+                              <span className="message-text">{text}</span>
+                              <button className="btn small" onClick={() => openEditMessage(m)}>Edit</button>
+                            </div>
+                          </td>
                         </tr>
                       );
                     })}
@@ -454,6 +525,35 @@ export default function DashboardPage() {
             <div className="modal-footer">
               <button className="btn" onClick={saveEdit}>Save</button>
               <button className="btn gray" onClick={closeEdit}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {editingMessage && (
+        <div className="modal-overlay" onClick={closeEditMessage}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Message</h3>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <label style={{ gridColumn: '1 / -1' }}>
+                  Message
+                  <textarea name="message" value={messageForm.message} onChange={onMessageFormChange} rows={4} style={{ padding: '8px 10px', border: '1px solid #e5e7eb', borderRadius: 6 }} />
+                </label>
+                <label>
+                  Tags (comma-separated)
+                  <input name="tags" value={messageForm.tags} onChange={onMessageFormChange} placeholder="e.g., updated, homepage" />
+                </label>
+                <label>
+                  Edited by
+                  <input name="edited_by" value={messageForm.edited_by} onChange={onMessageFormChange} placeholder="admin" />
+                </label>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn" onClick={saveEditMessage}>Save</button>
+              <button className="btn gray" onClick={closeEditMessage}>Cancel</button>
             </div>
           </div>
         </div>
