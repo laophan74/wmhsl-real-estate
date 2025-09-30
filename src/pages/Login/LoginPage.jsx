@@ -17,16 +17,16 @@ export default function LoginPage() {
     setLoading(true);
     const res = await login(email.trim().toLowerCase(), password);
     setLoading(false);
-    if (res.ok) navigate("/dashboard");
-    else setError(res.message || "Đăng nhập thất bại. Vui lòng thử lại.");
+  if (res.ok) navigate("/dashboard");
+  else setError(res.message || "Login failed. Please try again.");
   };
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "70vh", p: 2 }}>
       <Card sx={{ width: 420, maxWidth: "100%", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Chào mừng trở lại</Typography>
-          <Typography variant="body2" sx={{ color: "#6b7280", mb: 3 }}>Đăng nhập để tiếp tục</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Welcome back</Typography>
+          <Typography variant="body2" sx={{ color: "#6b7280", mb: 3 }}>Sign in to continue</Typography>
 
           <Box component="form" onSubmit={onSubmit}>
             <TextField
@@ -40,7 +40,7 @@ export default function LoginPage() {
               InputProps={{ startAdornment: <InputAdornment position="start">📧</InputAdornment> }}
             />
             <TextField
-              label="Mật khẩu"
+              label="Password"
               type="password"
               fullWidth
               required
@@ -53,7 +53,7 @@ export default function LoginPage() {
             {error && <Typography variant="body2" color="error" sx={{ mt: 1 }}>{error}</Typography>}
 
             <Button type="submit" className="submit-btn" variant="contained" fullWidth disabled={loading} sx={{ mt: 2 }}>
-              {loading ? "Đang đăng nhập…" : "Đăng nhập"}
+              {loading ? "Signing in…" : "Sign in"}
             </Button>
           </Box>
 

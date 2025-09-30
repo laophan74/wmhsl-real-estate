@@ -25,9 +25,9 @@ export function AuthProvider({ children }) {
       return { ok: true };
     } catch (err) {
       const status = err?.response?.status;
-      if (status === 401) return { ok: false, message: 'Email hoặc mật khẩu sai.' };
-      if (status === 400) return { ok: false, message: 'Dữ liệu không hợp lệ.' };
-      return { ok: false, message: 'Đăng nhập thất bại. Vui lòng thử lại.' };
+      if (status === 401) return { ok: false, message: 'Incorrect email or password.' };
+      if (status === 400) return { ok: false, message: 'Invalid input.' };
+      return { ok: false, message: 'Login failed. Please try again.' };
     }
   }
 
@@ -36,7 +36,12 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  useEffect(() => { refreshMe(); }, []);
+  useEffect(() => {
+    refreshMe();
+    const onUnauthorized = () => setUser(null);
+    window.addEventListener('app:unauthorized', onUnauthorized);
+    return () => window.removeEventListener('app:unauthorized', onUnauthorized);
+  }, []);
 
   return (
     <AuthCtx.Provider value={{ user, loading, login, logout, refreshMe }}>

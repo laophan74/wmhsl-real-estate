@@ -4,6 +4,7 @@ import DashboardPage from "./pages/Dashboard/DashboardPage";
 import LoginPage from "./pages/Login/LoginPage";
 import HomePage from "./pages/Home/HomePage";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
+import { AdminRoute } from "./auth/AdminRoute";
 
 const router = createBrowserRouter([
   {
@@ -13,7 +14,9 @@ const router = createBrowserRouter([
   { path: "/", element: <HomePage /> },
   { path: "/dashboard", element: (
     <ProtectedRoute>
-      <DashboardPage />
+      <AdminRoute>
+        <DashboardPage />
+      </AdminRoute>
     </ProtectedRoute>
   ) },
   { path: "/login", element: <LoginPage /> },
