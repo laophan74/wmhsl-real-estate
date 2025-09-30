@@ -123,13 +123,7 @@ export default function HomePage() {
   <Grid item xs={12} md={7} lg={8} className="form-col">
           <Card className="lead-card" elevation={0} sx={{ boxShadow: 'none', border: 'none' }}>
             <CardContent sx={{ p: { xs: 3, md: 5 } }}>
-              <Typography variant="h4" className="lead-title" gutterBottom>
-                Thank you for your interest in Stone Real Estate.
-              </Typography>
-
-              <Typography variant="body1" sx={{ mb: 3, color: "#4b5563" }}>
-                Please fill out the form, we will get in touch with you soon.
-              </Typography>
+              {/* Intro text removed as requested */}
 
               {!showSubmittedMessage ? (
               <Box component="form" onSubmit={handleSubmit}>
@@ -235,11 +229,8 @@ export default function HomePage() {
                 </Grid>
               </Box>
               ) : (
-                <Box>
-                  <Typography variant="h5" sx={{ mb: 2 }}>
-                    Message
-                  </Typography>
-                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                <Box className="submitted-message-container">
+                  <Typography className="submitted-message">
                     {submittedMessageText}
                   </Typography>
                 </Box>
