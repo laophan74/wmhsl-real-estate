@@ -3,6 +3,7 @@ import MainLayout from "./layouts/MainLayout/MainLayout";
 import DashboardPage from "./pages/Dashboard/DashboardPage";
 import LoginPage from "./pages/Login/LoginPage";
 import HomePage from "./pages/Home/HomePage";
+import { ProtectedRoute } from "./auth/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
@@ -10,7 +11,11 @@ const router = createBrowserRouter([
     element: <MainLayout />,
     children: [
   { path: "/", element: <HomePage /> },
-  { path: "/dashboard", element: <DashboardPage /> },
+  { path: "/dashboard", element: (
+    <ProtectedRoute>
+      <DashboardPage />
+    </ProtectedRoute>
+  ) },
   { path: "/login", element: <LoginPage /> },
     ],
   },

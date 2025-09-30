@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./DashboardPage.css";
+import { api } from "../../lib/api";
 
 const TABS = [
   { key: "leads", label: "Leads" },
@@ -70,14 +71,6 @@ function toYesNo(value) {
 }
 
 export default function DashboardPage() {
-  // Simple auth guard: redirect to /login if no token
-  React.useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    // Only guard client-side
-    if (!token) {
-      try { window.location.assign('/login'); } catch (_) {}
-    }
-  }, []);
   const [active, setActive] = useState("leads");
   const [leads, setLeads] = useState([]);
   const [admins, setAdmins] = useState([]);
@@ -143,17 +136,7 @@ export default function DashboardPage() {
     const body = { contact };
 
     try {
-      const res = await fetch(`${BASE_URL}/api/v1/leads/${leadId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`${res.status} ${text}`);
-      }
-      let updated;
-      try { updated = await res.json(); } catch (_) { updated = null; }
+      const { data: updated } = await api.patch(`/api/v1/leads/${leadId}`, body);
       setLeads((list) => list.map((x) => {
         const idX = x.lead_id || x.id;
         if (idX !== leadId) return x;
@@ -173,11 +156,7 @@ export default function DashboardPage() {
     const ok = window.confirm("Are you sure you want to delete this lead?");
     if (!ok) return;
     try {
-      const res = await fetch(`${BASE_URL}/api/v1/leads/${leadId}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`${res.status} ${text}`);
-      }
+      await api.delete(`/api/v1/leads/${leadId}`);
       // Optimistically remove from list
       setLeads((list) => list.filter((x) => (x.lead_id || x.id) !== leadId));
     } catch (err) {
@@ -223,17 +202,7 @@ export default function DashboardPage() {
     if (Object.keys(meta).length > 0) body.metadata = meta;
 
     try {
-      const res = await fetch(`${BASE_URL}/api/v1/messages/${msgId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`${res.status} ${text}`);
-      }
-      let updated;
-      try { updated = await res.json(); } catch (_) { updated = null; }
+      const { data: updated } = await api.patch(`/api/v1/messages/${msgId}`, body);
       setMessages((list) => list.map((m) => {
         const mid = m.id || m.message_id || m.text_id;
         if (mid !== msgId) return m;
@@ -259,10 +228,7 @@ export default function DashboardPage() {
       let offset = 0;
       const all = [];
       while (true) {
-        const url = `${BASE_URL}/api/v1/leads?limit=${pageSize}&offset=${offset}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const batch = await res.json();
+  const { data: batch } = await api.get('/api/v1/leads', { params: { limit: pageSize, offset } });
         if (!Array.isArray(batch) || batch.length === 0) break;
         all.push(...batch);
         if (batch.length < pageSize) break; // no more pages
@@ -288,10 +254,7 @@ export default function DashboardPage() {
       let offset = 0;
       const all = [];
       while (true) {
-        const url = `${BASE_URL}/api/v1/admins?limit=${pageSize}&offset=${offset}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const json = await res.json();
+  const { data: json } = await api.get('/api/v1/admins', { params: { limit: pageSize, offset } });
         const list = Array.isArray(json) ? json : (Array.isArray(json?.value) ? json.value : []);
         if (!Array.isArray(list) || list.length === 0) break;
         all.push(...list);
@@ -316,10 +279,7 @@ export default function DashboardPage() {
       let offset = 0;
       const all = [];
       while (true) {
-        const url = `${BASE_URL}/api/v1/messages?limit=${pageSize}&offset=${offset}`;
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-        const json = await res.json();
+  const { data: json } = await api.get('/api/v1/messages', { params: { limit: pageSize, offset } });
         const list = Array.isArray(json) ? json : (Array.isArray(json?.value) ? json.value : []);
         if (!Array.isArray(list) || list.length === 0) break;
         all.push(...list);
