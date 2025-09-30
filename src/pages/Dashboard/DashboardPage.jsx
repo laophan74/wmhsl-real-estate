@@ -71,6 +71,118 @@ export default function DashboardPage() {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState(null);
 
+  // Edit modal state
+  const [editingLead, setEditingLead] = useState(null); // the full lead object being edited
+  const [editForm, setEditForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    suburb: "",
+    timeframe: "",
+    selling: "no",
+    buying: "no",
+    score: "",
+    status: "",
+  });
+
+  const openEdit = (lead) => {
+    const c = lead?.contact || {};
+    setEditingLead(lead);
+    setEditForm({
+      first_name: c.first_name || "",
+      last_name: c.last_name || "",
+      email: c.email || "",
+      phone: c.phone || "",
+      suburb: c.suburb || "",
+      timeframe: c.timeframe || "",
+      selling: (typeof c.selling_interest === 'boolean' ? (c.selling_interest ? 'yes' : 'no') : (typeof c.interested === 'string' ? c.interested : 'no')) || 'no',
+      buying: (typeof c.buying_interest === 'boolean' ? (c.buying_interest ? 'yes' : 'no') : (typeof (lead?.metadata?.custom_fields?.buying_interest) === 'string' ? lead.metadata.custom_fields.buying_interest : 'no')) || 'no',
+      score: (c.score != null ? String(c.score) : (lead?.metadata?.custom_fields?.score != null ? String(lead.metadata.custom_fields.score) : '')),
+      status: lead?.status || "",
+    });
+  };
+
+  const closeEdit = () => {
+    setEditingLead(null);
+  };
+
+  const onEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const saveEdit = async () => {
+    if (!editingLead) return;
+    const leadId = editingLead.lead_id || editingLead.id;
+    if (!leadId) return;
+
+    const contact = {
+      first_name: editForm.first_name.trim(),
+      last_name: editForm.last_name.trim(),
+      email: editForm.email.trim().toLowerCase(),
+      phone: editForm.phone.trim(),
+      suburb: editForm.suburb,
+      timeframe: editForm.timeframe,
+      selling_interest: editForm.selling === 'yes',
+      buying_interest: editForm.buying === 'yes',
+    };
+    // only include score if provided and valid
+    const scoreNum = Number(editForm.score);
+    if (!isNaN(scoreNum) && editForm.score !== "") {
+      contact.score = scoreNum;
+    }
+
+    // Build body conditionally (contact + optional status)
+    const body = { contact };
+    if (editForm.status && editForm.status.trim() !== "") {
+      body.status = editForm.status.trim();
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status} ${text}`);
+      }
+      let updated;
+      try { updated = await res.json(); } catch (_) { updated = null; }
+      setLeads((list) => list.map((x) => {
+        const idX = x.lead_id || x.id;
+        if (idX !== leadId) return x;
+        const newContact = updated?.contact || { ...x.contact, ...contact };
+        const newStatus = updated?.status ?? body.status ?? x.status;
+        const newMeta = updated?.metadata || x.metadata;
+        return { ...x, contact: newContact, status: newStatus, metadata: newMeta };
+      }));
+      closeEdit();
+    } catch (err) {
+      alert(`Failed to update lead: ${err.message}`);
+    }
+  };
+
+  const deleteLead = async (lead) => {
+    const leadId = lead.lead_id || lead.id;
+    if (!leadId) return;
+    const ok = window.confirm("Are you sure you want to delete this lead?");
+    if (!ok) return;
+    try {
+      const res = await fetch(`${BASE_URL}/api/v1/leads/${leadId}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status} ${text}`);
+      }
+      // Optimistically remove from list
+      setLeads((list) => list.filter((x) => (x.lead_id || x.id) !== leadId));
+    } catch (err) {
+      alert(`Failed to delete lead: ${err.message}`);
+    }
+  };
+
   const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
 
   // Fetch all leads using paginated requests (limit 100, increasing offset) until empty batch
@@ -218,6 +330,7 @@ export default function DashboardPage() {
                       <th>Selling</th>
                       <th>Buying</th>
                       <th>Created</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -233,6 +346,12 @@ export default function DashboardPage() {
                         <td>{toYesNo(l.contact?.selling_interest ?? l.contact?.interested)}</td>
                         <td>{toYesNo(l.contact?.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
                         <td>{formatDate(l.metadata?.created_at) || "-"}</td>
+                        <td>
+                          <div className="row-actions">
+                            <button className="btn small" onClick={() => openEdit(l)}>Edit</button>
+                            <button className="btn danger small" onClick={() => deleteLead(l)}>Delete</button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -309,6 +428,75 @@ export default function DashboardPage() {
           )}
         </section>
       </main>
+      {editingLead && (
+        <div className="modal-overlay" onClick={closeEdit}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Edit Lead</h3>
+            </div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <label>
+                  First name
+                  <input name="first_name" value={editForm.first_name} onChange={onEditChange} />
+                </label>
+                <label>
+                  Last name
+                  <input name="last_name" value={editForm.last_name} onChange={onEditChange} />
+                </label>
+                <label>
+                  Email
+                  <input name="email" type="email" value={editForm.email} onChange={onEditChange} />
+                </label>
+                <label>
+                  Phone
+                  <input name="phone" value={editForm.phone} onChange={onEditChange} />
+                </label>
+                <label>
+                  Suburb
+                  <input name="suburb" value={editForm.suburb} onChange={onEditChange} />
+                </label>
+                <label>
+                  Timeframe
+                  <select name="timeframe" value={editForm.timeframe} onChange={onEditChange}>
+                    <option value="">Choose…</option>
+                    <option value="1-3 months">1-3 months</option>
+                    <option value="3-6 months">3-6 months</option>
+                    <option value="6+ months">6+ months</option>
+                    <option value="not sure">Not sure</option>
+                  </select>
+                </label>
+                <label>
+                  Selling interest
+                  <select name="selling" value={editForm.selling} onChange={onEditChange}>
+                    <option value="yes">yes</option>
+                    <option value="no">no</option>
+                  </select>
+                </label>
+                <label>
+                  Buying interest
+                  <select name="buying" value={editForm.buying} onChange={onEditChange}>
+                    <option value="yes">yes</option>
+                    <option value="no">no</option>
+                  </select>
+                </label>
+                <label>
+                  Score
+                  <input name="score" value={editForm.score} onChange={onEditChange} placeholder="e.g., 75" />
+                </label>
+                <label>
+                  Status
+                  <input name="status" value={editForm.status} onChange={onEditChange} placeholder="e.g., new, contacted" />
+                </label>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn" onClick={saveEdit}>Save</button>
+              <button className="btn muted" onClick={closeEdit}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
