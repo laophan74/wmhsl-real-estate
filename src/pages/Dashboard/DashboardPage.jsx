@@ -70,6 +70,14 @@ function toYesNo(value) {
 }
 
 export default function DashboardPage() {
+  // Simple auth guard: redirect to /login if no token
+  React.useEffect(() => {
+    const token = localStorage.getItem('auth_token');
+    // Only guard client-side
+    if (!token) {
+      try { window.location.assign('/login'); } catch (_) {}
+    }
+  }, []);
   const [active, setActive] = useState("leads");
   const [leads, setLeads] = useState([]);
   const [admins, setAdmins] = useState([]);
