@@ -31,6 +31,33 @@ function formatDate(value) {
   return "";
 }
 
+// Extract numeric score from different possible locations in a lead object
+function getLeadScore(lead) {
+  const raw = lead?.score ?? lead?.metadata?.score ?? lead?.metadata?.lead_score ?? lead?.metadata?.custom_fields?.score ?? lead?.contact?.score;
+  const num = typeof raw === "string" ? Number(raw) : raw;
+  return typeof num === "number" && !isNaN(num) ? num : undefined;
+}
+
+// Map score to category: =75 -> HOT, =50 -> WARM, <50 -> COLD, otherwise '-'
+function getLeadCategory(lead) {
+  const score = getLeadScore(lead);
+  if (score === 75) return "HOT";
+  if (score === 50) return "WARM";
+  if (typeof score === "number" && score < 50) return "COLD";
+  return "-";
+}
+
+// Normalize boolean or string values to 'yes' / 'no' (fallback '-')
+function toYesNo(value) {
+  if (typeof value === "boolean") return value ? "yes" : "no";
+  if (typeof value === "string") {
+    const v = value.trim().toLowerCase();
+    if (v === "true" || v === "yes") return "yes";
+    if (v === "false" || v === "no") return "no";
+  }
+  return value == null || value === "" ? "-" : String(value);
+}
+
 export default function DashboardPage() {
   const [active, setActive] = useState("leads");
   const [leads, setLeads] = useState([]);
@@ -187,6 +214,7 @@ export default function DashboardPage() {
                       <th>Phone</th>
                       <th>Suburb</th>
                       <th>Timeframe</th>
+                      <th>Category</th>
                       <th>Selling</th>
                       <th>Buying</th>
                       <th>Created</th>
@@ -201,8 +229,9 @@ export default function DashboardPage() {
                         <td>{l.contact?.phone}</td>
                         <td>{l.contact?.suburb}</td>
                         <td>{l.contact?.timeframe}</td>
-                        <td>{String(l.contact?.selling_interest ?? l.contact?.interested ?? "")}</td>
-                        <td>{String(l.contact?.buying_interest ?? l.metadata?.custom_fields?.buying_interest ?? "")}</td>
+                        <td>{getLeadCategory(l)}</td>
+                        <td>{toYesNo(l.contact?.selling_interest ?? l.contact?.interested)}</td>
+                        <td>{toYesNo(l.contact?.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
                         <td>{formatDate(l.metadata?.created_at) || "-"}</td>
                       </tr>
                     ))}
