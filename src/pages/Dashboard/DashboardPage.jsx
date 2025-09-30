@@ -34,6 +34,8 @@ function formatDate(value) {
 export default function DashboardPage() {
   const [active, setActive] = useState("leads");
   const [leads, setLeads] = useState([]);
+  const [admins, setAdmins] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -66,8 +68,64 @@ export default function DashboardPage() {
     }
   };
 
+  // Fetch all admins with pagination
+  const fetchAdmins = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const pageSize = 100;
+      let offset = 0;
+      const all = [];
+      while (true) {
+        const url = `${BASE_URL}/api/v1/admins?limit=${pageSize}&offset=${offset}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const batch = await res.json();
+        if (!Array.isArray(batch) || batch.length === 0) break;
+        all.push(...batch);
+        if (batch.length < pageSize) break;
+        offset += pageSize;
+      }
+      setAdmins(all);
+    } catch (err) {
+      setError(err.message || "Failed to load admins");
+      setAdmins([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch all messages with pagination
+  const fetchMessages = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const pageSize = 100;
+      let offset = 0;
+      const all = [];
+      while (true) {
+        const url = `${BASE_URL}/api/v1/messages?limit=${pageSize}&offset=${offset}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+        const batch = await res.json();
+        if (!Array.isArray(batch) || batch.length === 0) break;
+        all.push(...batch);
+        if (batch.length < pageSize) break;
+        offset += pageSize;
+      }
+      setMessages(all);
+    } catch (err) {
+      setError(err.message || "Failed to load messages");
+      setMessages([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (active === "leads") fetchLeads();
+    if (active === "admins") fetchAdmins();
+    if (active === "messages") fetchMessages();
   }, [active]);
 
   return (
@@ -142,11 +200,77 @@ export default function DashboardPage() {
           )}
 
           {active === "admins" && (
-            <div className="empty">Admins management coming soon.</div>
+            <div className="table-wrap">
+              {loading ? (
+                <div className="empty">Loading admins…</div>
+              ) : error ? (
+                <div className="empty error">Error: {error}</div>
+              ) : admins.length === 0 ? (
+                <div className="empty">No admins found.</div>
+              ) : (
+                <table className="leads-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {admins.map((a, idx) => (
+                      <tr key={a.id || a.admin_id || idx}>
+                        <td className="mono">{idx + 1}</td>
+                        <td>{a.name || a.full_name || `${a.first_name || ""} ${a.last_name || ""}`}</td>
+                        <td>{a.email || a.contact?.email}</td>
+                        <td>{a.role || a.roles?.join(", ")}</td>
+                        <td>{formatDate(a.metadata?.created_at || a.created_at) || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           )}
 
           {active === "messages" && (
-            <div className="empty">Messages inbox coming soon.</div>
+            <div className="table-wrap">
+              {loading ? (
+                <div className="empty">Loading messages…</div>
+              ) : error ? (
+                <div className="empty error">Error: {error}</div>
+              ) : messages.length === 0 ? (
+                <div className="empty">No messages found.</div>
+              ) : (
+                <table className="leads-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Subject</th>
+                      <th>Message</th>
+                      <th>Created</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {messages.map((m, idx) => (
+                      <tr key={m.id || m.message_id || idx}>
+                        <td className="mono">{idx + 1}</td>
+                        <td>{m.name || `${m.first_name || m.contact?.first_name || ""} ${m.last_name || m.contact?.last_name || ""}`}</td>
+                        <td>{m.email || m.contact?.email}</td>
+                        <td>{m.phone || m.contact?.phone}</td>
+                        <td>{m.subject || m.title || "-"}</td>
+                        <td>{(m.message || m.content || m.body || "").toString().slice(0, 80)}{(m.message || m.content || m.body || "").length > 80 ? "…" : ""}</td>
+                        <td>{formatDate(m.metadata?.created_at || m.created_at) || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           )}
         </section>
       </main>
