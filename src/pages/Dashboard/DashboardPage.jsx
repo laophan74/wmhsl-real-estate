@@ -36,15 +36,20 @@ export default function DashboardPage() {
   const [leads, setLeads] = useState([]);
   const [admins, setAdmins] = useState([]);
   const [messages, setMessages] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+
+  const [leadsLoading, setLeadsLoading] = useState(false);
+  const [leadsError, setLeadsError] = useState(null);
+  const [adminsLoading, setAdminsLoading] = useState(false);
+  const [adminsError, setAdminsError] = useState(null);
+  const [messagesLoading, setMessagesLoading] = useState(false);
+  const [messagesError, setMessagesError] = useState(null);
 
   const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
 
   // Fetch all leads using paginated requests (limit 100, increasing offset) until empty batch
   const fetchLeads = async () => {
-    setLoading(true);
-    setError(null);
+    setLeadsLoading(true);
+    setLeadsError(null);
     try {
       const pageSize = 100;
       let offset = 0;
@@ -61,17 +66,17 @@ export default function DashboardPage() {
       }
       setLeads(all);
     } catch (err) {
-      setError(err.message || "Failed to load leads");
+      setLeadsError(err.message || "Failed to load leads");
       setLeads([]);
     } finally {
-      setLoading(false);
+      setLeadsLoading(false);
     }
   };
 
   // Fetch all admins with pagination
   const fetchAdmins = async () => {
-    setLoading(true);
-    setError(null);
+    setAdminsLoading(true);
+    setAdminsError(null);
     try {
       const pageSize = 100;
       let offset = 0;
@@ -88,17 +93,17 @@ export default function DashboardPage() {
       }
       setAdmins(all);
     } catch (err) {
-      setError(err.message || "Failed to load admins");
+      setAdminsError(err.message || "Failed to load admins");
       setAdmins([]);
     } finally {
-      setLoading(false);
+      setAdminsLoading(false);
     }
   };
 
   // Fetch all messages with pagination
   const fetchMessages = async () => {
-    setLoading(true);
-    setError(null);
+    setMessagesLoading(true);
+    setMessagesError(null);
     try {
       const pageSize = 100;
       let offset = 0;
@@ -115,10 +120,10 @@ export default function DashboardPage() {
       }
       setMessages(all);
     } catch (err) {
-      setError(err.message || "Failed to load messages");
+      setMessagesError(err.message || "Failed to load messages");
       setMessages([]);
     } finally {
-      setLoading(false);
+      setMessagesLoading(false);
     }
   };
 
@@ -148,20 +153,26 @@ export default function DashboardPage() {
       <main className="dashboard-main">
         <header className="dashboard-header">
           <h2>{TABS.find((t) => t.key === active)?.label}</h2>
-          {active === "leads" && (
-            <div className="header-actions">
+          <div className="header-actions">
+            {active === "leads" && (
               <button className="btn" onClick={fetchLeads}>Refresh</button>
-            </div>
-          )}
+            )}
+            {active === "admins" && (
+              <button className="btn" onClick={fetchAdmins}>Refresh</button>
+            )}
+            {active === "messages" && (
+              <button className="btn" onClick={fetchMessages}>Refresh</button>
+            )}
+          </div>
         </header>
 
         <section className="dashboard-content">
           {active === "leads" && (
             <div className="table-wrap">
-              {loading ? (
+              {leadsLoading ? (
                 <div className="empty">Loading leads…</div>
-              ) : error ? (
-                <div className="empty error">Error: {error}</div>
+              ) : leadsError ? (
+                <div className="empty error">Error: {leadsError}</div>
               ) : leads.length === 0 ? (
                 <div className="empty">No leads found.</div>
               ) : (
@@ -201,10 +212,10 @@ export default function DashboardPage() {
 
           {active === "admins" && (
             <div className="table-wrap">
-              {loading ? (
+              {adminsLoading ? (
                 <div className="empty">Loading admins…</div>
-              ) : error ? (
-                <div className="empty error">Error: {error}</div>
+              ) : adminsError ? (
+                <div className="empty error">Error: {adminsError}</div>
               ) : admins.length === 0 ? (
                 <div className="empty">No admins found.</div>
               ) : (
@@ -236,10 +247,10 @@ export default function DashboardPage() {
 
           {active === "messages" && (
             <div className="table-wrap">
-              {loading ? (
+              {messagesLoading ? (
                 <div className="empty">Loading messages…</div>
-              ) : error ? (
-                <div className="empty error">Error: {error}</div>
+              ) : messagesError ? (
+                <div className="empty error">Error: {messagesError}</div>
               ) : messages.length === 0 ? (
                 <div className="empty">No messages found.</div>
               ) : (
