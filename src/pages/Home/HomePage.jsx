@@ -25,6 +25,8 @@ export default function HomePage() {
   const [buying, setBuying] = React.useState("no");
   const [submitting, setSubmitting] = React.useState(false);
   const [statusMessage, setStatusMessage] = React.useState("");
+  const [showSubmittedMessage, setShowSubmittedMessage] = React.useState(false);
+  const [submittedMessageText, setSubmittedMessageText] = React.useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,15 +62,40 @@ export default function HomePage() {
 
       const body = await res.json();
       // body may contain { reused, lead_id, score }
-      if (body.reused) {
-        setStatusMessage(`Lead already exists (id: ${body.lead_id}).`);
-      } else {
-        setStatusMessage(`Lead created (id: ${body.lead_id}). Thank you!`);
-        // reset form
-        formEl.reset();
-        setSelling("no");
-        setTimeframe("");
-        setBuying("no");
+      const successMsg = body.reused
+        ? `Lead already exists (id: ${body.lead_id}).`
+        : `Lead created (id: ${body.lead_id}). Thank you!`;
+      setStatusMessage(successMsg);
+
+      // reset form controls
+      formEl.reset();
+      setSelling("no");
+      setTimeframe("");
+      setBuying("no");
+
+      // fetch first message and switch UI to show it
+      try {
+        const resMsg = await fetch(
+          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=100&offset=0"
+        );
+        if (resMsg.ok) {
+          const json = await resMsg.json();
+          const list = Array.isArray(json)
+            ? json
+            : Array.isArray(json?.value)
+            ? json.value
+            : [];
+          const first = list[0];
+          const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
+          setSubmittedMessageText(text || "Thank you! We will get in touch soon.");
+          setShowSubmittedMessage(true);
+        } else {
+          setSubmittedMessageText("Thank you! We will get in touch soon.");
+          setShowSubmittedMessage(true);
+        }
+      } catch (_) {
+        setSubmittedMessageText("Thank you! We will get in touch soon.");
+        setShowSubmittedMessage(true);
       }
     } catch (err) {
       console.error(err);
@@ -104,6 +131,7 @@ export default function HomePage() {
                 Please fill out the form, we will get in touch with you soon.
               </Typography>
 
+              {!showSubmittedMessage ? (
               <Box component="form" onSubmit={handleSubmit}>
                 <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
@@ -206,6 +234,16 @@ export default function HomePage() {
                   </Grid>
                 </Grid>
               </Box>
+              ) : (
+                <Box>
+                  <Typography variant="h5" sx={{ mb: 2 }}>
+                    Message
+                  </Typography>
+                  <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                    {submittedMessageText}
+                  </Typography>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
