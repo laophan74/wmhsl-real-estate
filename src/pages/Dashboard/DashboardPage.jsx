@@ -80,10 +80,6 @@ export default function DashboardPage() {
     phone: "",
     suburb: "",
     timeframe: "",
-    selling: "no",
-    buying: "no",
-    score: "",
-    status: "",
   });
 
   const openEdit = (lead) => {
@@ -96,10 +92,6 @@ export default function DashboardPage() {
       phone: c.phone || "",
       suburb: c.suburb || "",
       timeframe: c.timeframe || "",
-      selling: (typeof c.selling_interest === 'boolean' ? (c.selling_interest ? 'yes' : 'no') : (typeof c.interested === 'string' ? c.interested : 'no')) || 'no',
-      buying: (typeof c.buying_interest === 'boolean' ? (c.buying_interest ? 'yes' : 'no') : (typeof (lead?.metadata?.custom_fields?.buying_interest) === 'string' ? lead.metadata.custom_fields.buying_interest : 'no')) || 'no',
-      score: (c.score != null ? String(c.score) : (lead?.metadata?.custom_fields?.score != null ? String(lead.metadata.custom_fields.score) : '')),
-      status: lead?.status || "",
     });
   };
 
@@ -124,20 +116,9 @@ export default function DashboardPage() {
       phone: editForm.phone.trim(),
       suburb: editForm.suburb,
       timeframe: editForm.timeframe,
-      selling_interest: editForm.selling === 'yes',
-      buying_interest: editForm.buying === 'yes',
     };
-    // only include score if provided and valid
-    const scoreNum = Number(editForm.score);
-    if (!isNaN(scoreNum) && editForm.score !== "") {
-      contact.score = scoreNum;
-    }
-
-    // Build body conditionally (contact + optional status)
+    // Build body: only contact fields per requirement
     const body = { contact };
-    if (editForm.status && editForm.status.trim() !== "") {
-      body.status = editForm.status.trim();
-    }
 
     try {
       const res = await fetch(`${BASE_URL}/api/v1/leads/${leadId}`, {
@@ -155,9 +136,8 @@ export default function DashboardPage() {
         const idX = x.lead_id || x.id;
         if (idX !== leadId) return x;
         const newContact = updated?.contact || { ...x.contact, ...contact };
-        const newStatus = updated?.status ?? body.status ?? x.status;
         const newMeta = updated?.metadata || x.metadata;
-        return { ...x, contact: newContact, status: newStatus, metadata: newMeta };
+        return { ...x, contact: newContact, metadata: newMeta };
       }));
       closeEdit();
     } catch (err) {
@@ -203,7 +183,9 @@ export default function DashboardPage() {
         if (batch.length < pageSize) break; // no more pages
         offset += pageSize;
       }
-      setLeads(all);
+  // Filter out soft-deleted leads (only include where metadata.deleted_at is null/undefined)
+  const filtered = all.filter((l) => l?.metadata?.deleted_at == null);
+  setLeads(filtered);
     } catch (err) {
       setLeadsError(err.message || "Failed to load leads");
       setLeads([]);
@@ -466,33 +448,12 @@ export default function DashboardPage() {
                     <option value="not sure">Not sure</option>
                   </select>
                 </label>
-                <label>
-                  Selling interest
-                  <select name="selling" value={editForm.selling} onChange={onEditChange}>
-                    <option value="yes">yes</option>
-                    <option value="no">no</option>
-                  </select>
-                </label>
-                <label>
-                  Buying interest
-                  <select name="buying" value={editForm.buying} onChange={onEditChange}>
-                    <option value="yes">yes</option>
-                    <option value="no">no</option>
-                  </select>
-                </label>
-                <label>
-                  Score
-                  <input name="score" value={editForm.score} onChange={onEditChange} placeholder="e.g., 75" />
-                </label>
-                <label>
-                  Status
-                  <input name="status" value={editForm.status} onChange={onEditChange} placeholder="e.g., new, contacted" />
-                </label>
+                {/* Only allow editing specified fields */}
               </div>
             </div>
             <div className="modal-footer">
               <button className="btn" onClick={saveEdit}>Save</button>
-              <button className="btn muted" onClick={closeEdit}>Cancel</button>
+              <button className="btn gray" onClick={closeEdit}>Cancel</button>
             </div>
           </div>
         </div>
