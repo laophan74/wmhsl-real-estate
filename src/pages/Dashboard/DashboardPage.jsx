@@ -7,6 +7,30 @@ const TABS = [
   { key: "messages", label: "Messages" },
 ];
 
+// Safely format date values from backend (ISO string, epoch, or Firestore Timestamp-like)
+function formatDate(value) {
+  if (!value) return "";
+  try {
+    // String or number (epoch ms)
+    if (typeof value === "string" || typeof value === "number") {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) return d.toLocaleString();
+    }
+    // Firestore Timestamp JSON shapes
+    if (typeof value === "object") {
+      if (typeof value._seconds === "number") {
+        const ms = value._seconds * 1000 + Math.floor((value._nanoseconds || 0) / 1e6);
+        return new Date(ms).toLocaleString();
+      }
+      if (typeof value.seconds === "number") {
+        const ms = value.seconds * 1000 + Math.floor((value.nanoseconds || 0) / 1e6);
+        return new Date(ms).toLocaleString();
+      }
+    }
+  } catch (_) {}
+  return "";
+}
+
 export default function DashboardPage() {
   const [active, setActive] = useState("leads");
   const [leads, setLeads] = useState([]);
@@ -94,7 +118,7 @@ export default function DashboardPage() {
                         <td>{l.contact?.timeframe}</td>
                         <td>{String(l.contact?.selling_interest ?? l.contact?.interested ?? "")}</td>
                         <td>{String(l.contact?.buying_interest ?? l.metadata?.custom_fields?.buying_interest ?? "")}</td>
-                        <td>{new Date(l.metadata?.created_at).toLocaleString()}</td>
+                        <td>{formatDate(l.metadata?.created_at) || "-"}</td>
                       </tr>
                     ))}
                   </tbody>
