@@ -18,6 +18,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import "./TopBar.css";
 import { useAuth } from "../../../auth/useAuth";
+import logoImg from "../../../assets/images/logo.png";
 import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
 import LoginIcon from "@mui/icons-material/Login";
 // Removed icon usage for Dashboard/Login per updated requirements
@@ -43,25 +44,30 @@ export default function TopBar() {
         <Toolbar sx={{ minHeight: 72, px: { xs: 2, md: 4 } }}>
           {/* Logo */}
           <Box component={RouterLink} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-            <img src="/src/assets/images/logo.png" alt="Stone" className="logo-img" />
+            <img
+              src={logoImg}
+              alt="Stone Logo"
+              className="logo-img"
+              onError={(e) => { e.currentTarget.style.display = 'none'; }}
+            />
           </Box>
 
 
           {/* Desktop nav */}
           <Box sx={{ ml: "auto", display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
             {user && (
-              <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard">
+              <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard" className="icon-accent">
                 <SpaceDashboardOutlinedIcon />
               </IconButton>
             )}
             {!user && (
-              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
+              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login" className="icon-accent">
                 <LoginIcon />
               </IconButton>
             )}
             {user && (
               <>
-                <IconButton aria-label="account" onClick={handleMenuOpen} size="large">
+                <IconButton aria-label="account" onClick={handleMenuOpen} size="large" className="icon-accent">
                   <AccountCircleIcon />
                 </IconButton>
                 <Menu
@@ -82,17 +88,17 @@ export default function TopBar() {
           {/* Burger button (mobile) */}
           <Box sx={{ ml: "auto", display: { xs: "inline-flex", md: "none" }, alignItems: "center", gap: 1 }}>
             {user && (
-              <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard">
+              <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard" className="icon-accent">
                 <SpaceDashboardOutlinedIcon />
               </IconButton>
             )}
             {!user && (
-              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
+              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login" className="icon-accent">
                 <LoginIcon />
               </IconButton>
             )}
             {user && (
-              <IconButton aria-label="account" onClick={handleMenuOpen} size="large">
+              <IconButton aria-label="account" onClick={handleMenuOpen} size="large" className="icon-accent">
                 <AccountCircleIcon />
               </IconButton>
             )}

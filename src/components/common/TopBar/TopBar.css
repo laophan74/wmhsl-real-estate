@@ -26,6 +26,19 @@
   object-fit: contain;
 }
 
+/* Icon accent style for better contrast on dark background */
+.icon-accent {
+  color: #f7c948 !important; /* warm accent */
+  transition: color 0.2s ease, background 0.2s ease;
+}
+.icon-accent:hover {
+  color: #ffe8a3 !important;
+  background: rgba(255,255,255,0.08);
+}
+.icon-accent:active {
+  color: #ffd66b !important;
+}
+
 .account-menu .MuiPaper-root {
   background: #ffffff;
 }
