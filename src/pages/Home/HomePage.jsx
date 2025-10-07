@@ -58,8 +58,8 @@ export default function HomePage() {
     if (fields.phone && !/^[+()\d\s-]{8,20}$/.test(fields.phone)) errs.phone = "Invalid phone number";
     if (!fields.suburb) errs.suburb = "Suburb is required";
     if (!fields.timeframe) errs.timeframe = "Timeframe is required";
-    if (!fields.selling_interest) errs.selling_interest = "Please select an option";
-    if (!fields.buying_interest) errs.buying_interest = "Please select an option";
+    if (!fields.interested) errs.interested = "Please select an option";
+    if (!fields.interested_buying) errs.interested_buying = "Please select an option";
     return errs;
   }
 
@@ -78,12 +78,8 @@ export default function HomePage() {
         phone: (formData.get("phone") || "").trim(),
         suburb: suburbValue || formData.get("suburb") || "",
         timeframe: formData.get("timeframe") || "",
-        // Use backend-expected field names
-        selling_interest: formData.get("selling_interest") || "",
-        buying_interest: formData.get("buying_interest") || "",
-        // Backward compatibility (if backend previously used different keys)
-        interested: formData.get("selling_interest") || "",
-        interested_buying: formData.get("buying_interest") || "",
+        interested: formData.get("interested") || "",
+        interested_buying: formData.get("interested_buying") || "",
       };
 
       const vErrors = validate(payload);
@@ -257,31 +253,31 @@ export default function HomePage() {
                   </Grid> */}
 
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth error={!!errors.selling_interest}>
+                    <FormControl fullWidth error={!!errors.interested}>
                       <FormLabel>Are you interested in selling a property?</FormLabel>
                       <RadioGroup
                         row
-                        name="selling_interest"
+                        name="interested"
                         value={selling}
-                        onChange={(e) => { setSelling(e.target.value); setErrors(prev => ({ ...prev, selling_interest: undefined })); }}
+                        onChange={(e) => { setSelling(e.target.value); setErrors(prev => ({ ...prev, interested: undefined })); }}
                       >
                         <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                         <FormControlLabel value="no" control={<Radio />} label="No" />
                       </RadioGroup>
-                      {errors.selling_interest && <FormHelperText>{errors.selling_interest}</FormHelperText>}
+                      {errors.interested && <FormHelperText>{errors.interested}</FormHelperText>}
                     </FormControl>
-                    <FormControl fullWidth sx={{ mt: 2 }} error={!!errors.buying_interest}>
+                    <FormControl fullWidth sx={{ mt: 2 }} error={!!errors.interested_buying}>
                       <FormLabel>Are you interested in buying a property?</FormLabel>
                       <RadioGroup
                         row
-                        name="buying_interest"
+                        name="interested_buying"
                         value={buying}
-                        onChange={(e) => { setBuying(e.target.value); setErrors(prev => ({ ...prev, buying_interest: undefined })); }}
+                        onChange={(e) => { setBuying(e.target.value); setErrors(prev => ({ ...prev, interested_buying: undefined })); }}
                       >
                         <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                         <FormControlLabel value="no" control={<Radio />} label="No" />
                       </RadioGroup>
-                      {errors.buying_interest && <FormHelperText>{errors.buying_interest}</FormHelperText>}
+                      {errors.interested_buying && <FormHelperText>{errors.interested_buying}</FormHelperText>}
                     </FormControl>
                   </Grid>
 
