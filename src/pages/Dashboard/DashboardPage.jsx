@@ -99,6 +99,10 @@ export default function DashboardPage() {
   const [leadQuery, setLeadQuery] = useState('');
   const [leadPage, setLeadPage] = useState(0); // 0-based
   const pageSize = 5;
+  // Admin table UX state
+  const [adminSort, setAdminSort] = useState({ field: 'created', direction: 'desc' });
+  const [adminQuery, setAdminQuery] = useState('');
+  const [adminPage, setAdminPage] = useState(0); // 0-based
   const [savingLead, setSavingLead] = useState(false);
   const [toasts, setToasts] = useState([]);
 
@@ -281,6 +285,16 @@ export default function DashboardPage() {
     });
   };
 
+  const toggleAdminSort = (field) => {
+    setAdminSort(s => {
+      if (s.field === field) {
+        const nextDir = s.direction === 'asc' ? 'desc' : 'asc';
+        return { field, direction: nextDir };
+      }
+      return { field, direction: 'asc' };
+    });
+  };
+
   const filteredSortedLeads = useMemo(() => {
     let arr = [...leads];
     if (leadQuery.trim()) {
@@ -332,6 +346,10 @@ export default function DashboardPage() {
     // Reset to first page when filter or sort changes
     setLeadPage(0);
   }, [leadQuery, leadSort]);
+
+  useEffect(() => {
+    setAdminPage(0);
+  }, [adminQuery, adminSort]);
 
   const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
 
@@ -694,32 +712,87 @@ export default function DashboardPage() {
                 <div className="empty">Loading admins…</div>
               ) : adminsError ? (
                 <div className="empty error">Error: {adminsError}</div>
-              ) : admins.length === 0 ? (
-                <div className="empty">No admins found.</div>
-              ) : (
-                <table className="leads-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Username</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Created</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {admins.map((a, idx) => (
-                      <tr key={a.id || a.admin_id || idx}>
-                        <td className="mono">{idx + 1}</td>
-                        <td>{a.username || "-"}</td>
-                        <td>{`${a.first_name || ""} ${a.last_name || ""}`.trim()}</td>
-                        <td>{a.email || "-"}</td>
-                        <td>{formatDate(a.metadata?.created_at || a.created_at) || "-"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              ) : (() => {
+                // prepare filtered/sorted/paginated inside render scope
+                let arr = [...admins];
+                if (adminQuery.trim()) {
+                  const q = adminQuery.trim().toLowerCase();
+                  arr = arr.filter(a => {
+                    const hay = [a.username, a.first_name, a.last_name, a.email]
+                      .filter(Boolean)
+                      .map(String)
+                      .join(' ')
+                      .toLowerCase();
+                    return hay.includes(q);
+                  });
+                }
+                const { field, direction } = adminSort;
+                const dir = direction === 'asc' ? 1 : -1;
+                arr.sort((a,b) => {
+                  let vA='', vB='';
+                  switch(field){
+                    case 'username': vA=a.username||''; vB=b.username||''; break;
+                    case 'name': vA=`${a.first_name||''} ${a.last_name||''}`.trim(); vB=`${b.first_name||''} ${b.last_name||''}`.trim(); break;
+                    case 'email': vA=a.email||''; vB=b.email||''; break;
+                    case 'created': vA=a.metadata?.created_at||a.created_at||''; vB=b.metadata?.created_at||b.created_at||''; break;
+                    default: vA=''; vB='';
+                  }
+                  if (vA < vB) return -1*dir;
+                  if (vA > vB) return 1*dir;
+                  return 0;
+                });
+                const total = arr.length;
+                const start = adminPage * pageSize;
+                const pageItems = arr.slice(start, start + pageSize);
+                if (total === 0) return <div className="empty">No admins found.</div>;
+                return (
+                  <>
+                    <div style={{ display:'flex', gap:12, alignItems:'center', marginBottom:12 }}>
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={adminQuery}
+                        onChange={(e)=>setAdminQuery(e.target.value)}
+                        style={{ padding:'6px 10px', border:'1px solid #d1d5db', borderRadius:4, minWidth:200 }}
+                      />
+                      <div style={{ fontSize:12, color:'#6b7280' }}>
+                        Showing {pageItems.length} of {total} (page {adminPage+1}/{Math.max(1, Math.ceil(total / pageSize))})
+                      </div>
+                    </div>
+                    <table className="leads-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th onClick={()=>toggleAdminSort('username')} className="sortable">Username {adminSort.field==='username' ? (adminSort.direction==='asc'?'▲':'▼') : ''}</th>
+                          <th onClick={()=>toggleAdminSort('name')} className="sortable">Name {adminSort.field==='name' ? (adminSort.direction==='asc'?'▲':'▼') : ''}</th>
+                          <th onClick={()=>toggleAdminSort('email')} className="sortable">Email {adminSort.field==='email' ? (adminSort.direction==='asc'?'▲':'▼') : ''}</th>
+                          <th onClick={()=>toggleAdminSort('created')} className="sortable">Created {adminSort.field==='created' ? (adminSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pageItems.map((a, idx) => (
+                          <tr key={a.id || a.admin_id || idx}>
+                            <td className="mono">{start + idx + 1}</td>
+                            <td>{a.username || '-'}</td>
+                            <td>{`${a.first_name || ''} ${a.last_name || ''}`.trim()}</td>
+                            <td>{a.email || '-'}</td>
+                            <td>{formatDate(a.metadata?.created_at || a.created_at) || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    <div style={{ display:'flex', justifyContent:'space-between', marginTop:12 }}>
+                      <div style={{ fontSize:12, color:'#6b7280' }}>
+                        Page {adminPage + 1} of {Math.max(1, Math.ceil(total / pageSize))}
+                      </div>
+                      <div style={{ display:'flex', gap:8 }}>
+                        <button className="btn small icon-only" aria-label="Previous page" disabled={adminPage===0} onClick={()=>setAdminPage(p=>Math.max(0,p-1))}>&lt;</button>
+                        <button className="btn small icon-only" aria-label="Next page" disabled={(adminPage+1) >= Math.ceil(total / pageSize)} onClick={()=>setAdminPage(p=>p+1)}>&gt;</button>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
 
