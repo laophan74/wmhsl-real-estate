@@ -29,6 +29,8 @@ export default function HomePage() {
   const [showSubmittedMessage, setShowSubmittedMessage] = React.useState(false);
   const [submittedMessageText, setSubmittedMessageText] = React.useState("");
   const [errors, setErrors] = React.useState({});
+  const [prefetchedMessage, setPrefetchedMessage] = React.useState("");
+  const [messageLoading, setMessageLoading] = React.useState(false);
 
   const suburbOptions = [
     "Hornsby",
@@ -111,27 +113,10 @@ export default function HomePage() {
   setBuying("");
   setSuburbValue("");
 
-      // Fetch first message document for thank-you text
-      try {
-        const resMsg = await fetch(
-          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=100&offset=0"
-        );
-        if (resMsg.ok) {
-          const json = await resMsg.json();
-          const list = Array.isArray(json)
-            ? json
-            : Array.isArray(json?.value)
-            ? json.value
-            : [];
-          const first = list[0];
-          const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
-          setSubmittedMessageText(text || "Thank you for your interest in Stone Real Estate.");
-        } else {
-          setSubmittedMessageText("Thank you for your interest in Stone Real Estate.");
-        }
-      } catch (_) {
-        setSubmittedMessageText("Thank you for your interest in Stone Real Estate.");
-      }
+      // Use prefetched message if available; otherwise fallback
+      setSubmittedMessageText(
+        prefetchedMessage || "Thank you for your interest in Stone Real Estate."
+      );
       setShowSubmittedMessage(true);
     } catch (err) {
       console.error(err);
@@ -140,6 +125,35 @@ export default function HomePage() {
       setSubmitting(false);
     }
   };
+
+  // Prefetch first message (limit=1). If endpoint requires auth and fails, we silently ignore.
+  React.useEffect(() => {
+    let cancelled = false;
+    const loadFirstMessage = async () => {
+      setMessageLoading(true);
+      try {
+        const res = await fetch(
+          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=1&offset=0"
+        );
+        if (!res.ok) throw new Error("failed");
+        const json = await res.json();
+        const list = Array.isArray(json)
+          ? json
+          : Array.isArray(json?.value)
+          ? json.value
+          : [];
+        const first = list[0];
+        const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
+        if (!cancelled && text) setPrefetchedMessage(text);
+      } catch (_) {
+        // ignore – fallback will be static message
+      } finally {
+        if (!cancelled) setMessageLoading(false);
+      }
+    };
+    loadFirstMessage();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <Box className="home-hero">
