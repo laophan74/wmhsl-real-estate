@@ -235,12 +235,7 @@ export default function DashboardPage() {
     }
   };
 
-  // Preferred contact extraction (email/phone/other) if present
-  function getPreferredContact(lead) {
-    const v = lead?.contact?.preferred_contact || lead?.metadata?.preferred_contact || lead?.metadata?.custom_fields?.preferred_contact;
-    if (!v) return '-';
-    return String(v).trim();
-  }
+  // Preferred Contact removed per latest requirements.
 
   // Export leads to CSV (Excel compatible)
   const exportLeads = () => {
@@ -256,7 +251,7 @@ export default function DashboardPage() {
         'Buying': toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest),
         'Suburb': c.suburb || '',
         'Timeframe': c.timeframe || '',
-        'Preferred Contact': getPreferredContact(l),
+  // Preferred Contact removed
         'Email': c.email || '',
         'Phone': c.phone || '',
         'Created': formatDate(l.metadata?.created_at) || ''
@@ -287,7 +282,7 @@ export default function DashboardPage() {
       const q = leadQuery.trim().toLowerCase();
       arr = arr.filter(l => {
         const c = l.contact || {};
-        const hay = [c.first_name, c.last_name, c.email, c.phone, c.suburb, c.timeframe, getLeadCategory(l), getPreferredContact(l)]
+  const hay = [c.first_name, c.last_name, c.email, c.phone, c.suburb, c.timeframe, getLeadCategory(l)]
           .filter(Boolean)
           .map(String)
           .join(' ') // join all fields
@@ -310,7 +305,7 @@ export default function DashboardPage() {
         case 'buying': vA=toYesNo(cA.buying_interest ?? a.metadata?.custom_fields?.buying_interest); vB=toYesNo(cB.buying_interest ?? b.metadata?.custom_fields?.buying_interest); break;
         case 'suburb': vA=cA.suburb||''; vB=cB.suburb||''; break;
         case 'timeframe': vA=cA.timeframe||''; vB=cB.timeframe||''; break;
-        case 'preferred_contact': vA=getPreferredContact(a); vB=getPreferredContact(b); break;
+  // preferred_contact sorting removed
         case 'email': vA=cA.email||''; vB=cB.email||''; break;
         case 'phone': vA=cA.phone||''; vB=cB.phone||''; break;
         case 'created': vA=a.metadata?.created_at||''; vB=b.metadata?.created_at||''; break;
@@ -492,8 +487,8 @@ export default function DashboardPage() {
           <div className="header-actions">
             {active === "leads" && (
               <>
-                <button className="btn" onClick={fetchLeads}>Refresh</button>
-                <button className="btn" onClick={exportLeads} disabled={leads.length === 0} style={{ marginLeft: 8 }}>Export</button>
+                <button className="btn" onClick={fetchLeads}><span className="icon">↻</span> Refresh</button>
+                <button className="btn" onClick={exportLeads} disabled={leads.length === 0} style={{ marginLeft: 8 }}><span className="icon">⬇</span> Export</button>
               </>
             )}
             {active === "admins" && (
@@ -539,7 +534,7 @@ export default function DashboardPage() {
                         <th onClick={()=>toggleSort('buying')} className="sortable">Buying {leadSort.field==='buying' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('suburb')} className="sortable">Suburb {leadSort.field==='suburb' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('timeframe')} className="sortable">Timeframe {leadSort.field==='timeframe' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
-                        <th onClick={()=>toggleSort('preferred_contact')} className="sortable">Preferred Contact {leadSort.field==='preferred_contact' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        {/* Preferred Contact column removed */}
                         <th onClick={()=>toggleSort('email')} className="sortable">Email {leadSort.field==='email' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('phone')} className="sortable">Phone {leadSort.field==='phone' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('created')} className="sortable">Created {leadSort.field==='created' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
@@ -580,14 +575,14 @@ export default function DashboardPage() {
                             <td>{toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
                             <td>{c.suburb || ''}</td>
                             <td>{c.timeframe || ''}</td>
-                            <td>{getPreferredContact(l)}</td>
+                            {/* Preferred Contact cell removed */}
                             <td>{c.email || ''}</td>
                             <td>{c.phone || ''}</td>
                             <td>{formatDate(l.metadata?.created_at) || '-'}</td>
                             <td>
                               <div className="row-actions">
-                                <button className="btn small" onClick={() => openEdit(l)}>Edit</button>
-                                <button className="btn danger small" onClick={() => deleteLead(l)}>Delete</button>
+                                <button className="btn small icon-only" aria-label="Edit" title="Edit" onClick={() => openEdit(l)}>✏</button>
+                                <button className="btn danger small icon-only" aria-label="Delete" title="Delete" onClick={() => deleteLead(l)}>🗑</button>
                               </div>
                             </td>
                           </tr>
@@ -600,8 +595,8 @@ export default function DashboardPage() {
                       Page {leadPage + 1} of {Math.max(1, Math.ceil(filteredSortedLeads.length / pageSize))}
                     </div>
                     <div style={{ display:'flex', gap:8 }}>
-                      <button className="btn small" disabled={leadPage===0} onClick={()=>setLeadPage(p=>Math.max(0,p-1))}>Prev</button>
-                      <button className="btn small" disabled={(leadPage+1) >= Math.ceil(filteredSortedLeads.length / pageSize)} onClick={()=>setLeadPage(p=>p+1)}>Next</button>
+                      <button className="btn small icon-only" aria-label="Previous page" disabled={leadPage===0} onClick={()=>setLeadPage(p=>Math.max(0,p-1))}>&lt;</button>
+                      <button className="btn small icon-only" aria-label="Next page" disabled={(leadPage+1) >= Math.ceil(filteredSortedLeads.length / pageSize)} onClick={()=>setLeadPage(p=>p+1)}>&gt;</button>
                     </div>
                   </div>
                 </>

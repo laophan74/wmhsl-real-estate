@@ -63,6 +63,9 @@
 
 .btn{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
 .btn.small{padding:4px 8px;font-size:12px}
+.btn.icon-only{display:inline-flex;align-items:center;justify-content:center;gap:4px}
+.btn.icon-only span.icon{margin-right:0}
+.btn .icon{margin-right:4px;font-size:14px;line-height:1}
 .btn.gray{background:#e5e7eb;color:#111827}
 .btn.danger{background:#dc2626}
 .row-actions{display:flex;gap:6px}
