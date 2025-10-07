@@ -1,5 +1,5 @@
 .topbar {
-  background: #394456;
+  background: #0f172a; /* match dashboard sidebar */
   color: #ffffff;
   border-bottom: none;
 }
@@ -27,16 +27,17 @@
 }
 
 /* Icon accent style for better contrast on dark background */
+/* Neutral icon styling */
 .icon-accent {
-  color: #f7c948 !important; /* warm accent */
+  color: #ffffff !important;
   transition: color 0.2s ease, background 0.2s ease;
 }
 .icon-accent:hover {
-  color: #ffe8a3 !important;
+  color: #e2e8f0 !important;
   background: rgba(255,255,255,0.08);
 }
 .icon-accent:active {
-  color: #ffd66b !important;
+  color: #cbd5e1 !important;
 }
 
 .account-menu .MuiPaper-root {

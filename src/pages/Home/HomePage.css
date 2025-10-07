@@ -15,10 +15,11 @@
 .home-hero {
   width: 100%;
   min-height: 500px;
-  min-height: 100vh;
+  /* remove forced 100vh so content can shrink without pushing footer off */
   background: #ffffff;
   display: flex;
   flex-direction: column;
+  padding-bottom: 40px; /* ensure breathing room above footer */
 }
 
 /* 2-column layout; MUI handles the grid responsiveness */
@@ -52,7 +53,7 @@
 }
 @media (max-width: 900px) {
   .form-col {
-    padding-bottom: 100px !important;
+    padding-bottom: 56px !important; /* reduce excessive push to avoid covering footer */
   }
   .lead-card {
     padding-bottom: 32px !important;
