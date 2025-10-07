@@ -1,23 +1,40 @@
 .topbar {
-  border-bottom: 1px solid #e5e7eb; 
-  background: #ffffff;
+  background: #394456;
+  color: #ffffff;
+  border-bottom: none;
 }
 
 .topbar-link {
-  font-size: 0.9rem;
-  letter-spacing: 0.02em;
-  color: #111827;  
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: #ffffff;
+  padding: 8px 14px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  transition: background 0.2s ease, color 0.2s ease;
 }
 
 .topbar-link:hover {
-  background: #f3f4f6; 
+  background: rgba(255,255,255,0.12);
 }
 
-.stone-logo {
-  font-weight: 800;
-  letter-spacing: 0.25em;
-  font-size: 1rem;
-  color: #111827;
-  border: 2px solid #111827;
-  padding: 8px 10px;
+.logo-img {
+  display: block;
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.account-menu .MuiPaper-root {
+  background: #ffffff;
+}
+
+.topbar .MuiIconButton-root { 
+  color: #ffffff; 
+}
+
+@media (max-width: 600px) {
+  .topbar-link { padding: 8px 10px; font-size: 0.75rem; }
+  .logo-img { height: 34px; }
 }

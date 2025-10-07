@@ -18,8 +18,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import "./TopBar.css";
 import { useAuth } from "../../../auth/useAuth";
-import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
-import LoginIcon from "@mui/icons-material/Login";
+// Removed icon usage for Dashboard/Login per updated requirements
 
 const navLinks = [
   // Additional text links can be added here
@@ -41,32 +40,20 @@ export default function TopBar() {
       <AppBar position="sticky" color="default" elevation={0} className="topbar">
         <Toolbar sx={{ minHeight: 72, px: { xs: 2, md: 4 } }}>
           {/* Logo */}
-          <Box
-            component={RouterLink}
-            to="/"
-            sx={{ display: "flex", alignItems: "center", gap: 1, textDecoration: "none" }}
-          >
-            <Box className="stone-logo">STONE</Box>
+          <Box component={RouterLink} to="/" sx={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+            <img src="/src/assets/images/logo.png" alt="Stone" className="logo-img" />
           </Box>
 
 
           {/* Desktop nav */}
           <Box sx={{ ml: "auto", display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
-            {/* Dashboard icon link */}
-            <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard">
-              <SpaceDashboardOutlinedIcon />
-            </IconButton>
-            {/* Other text links if any */}
-            {navLinks.map((item) => (
-              <Button key={item.label} component={RouterLink} to={item.to} className="topbar-link">
-                {item.label}
-              </Button>
-            ))}
-            {!user ? (
-              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
-                <LoginIcon />
-              </IconButton>
-            ) : (
+            {user && (
+              <Button component={RouterLink} to="/dashboard" className="topbar-link">Dashboard</Button>
+            )}
+            {!user && (
+              <Button component={RouterLink} to="/login" className="topbar-link">Log In</Button>
+            )}
+            {user && (
               <>
                 <IconButton aria-label="account" onClick={handleMenuOpen} size="large">
                   <AccountCircleIcon />
@@ -88,11 +75,13 @@ export default function TopBar() {
 
           {/* Burger button (mobile) */}
           <Box sx={{ ml: "auto", display: { xs: "inline-flex", md: "none" }, alignItems: "center", gap: 1 }}>
-            {!user ? (
-              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
-                <LoginIcon />
-              </IconButton>
-            ) : (
+            {user && (
+              <Button component={RouterLink} to="/dashboard" className="topbar-link" sx={{ minWidth: 'auto' }}>Dashboard</Button>
+            )}
+            {!user && (
+              <Button component={RouterLink} to="/login" className="topbar-link" sx={{ minWidth: 'auto' }}>Log In</Button>
+            )}
+            {user && (
               <IconButton aria-label="account" onClick={handleMenuOpen} size="large">
                 <AccountCircleIcon />
               </IconButton>
@@ -108,12 +97,13 @@ export default function TopBar() {
       <Drawer anchor="right" open={open} onClose={() => setOpen(false)}>
         <Box sx={{ width: 280 }} role="presentation" onClick={() => setOpen(false)}>
           <List>
-            {/* Explicit Dashboard entry for mobile drawer */}
-            <ListItem disablePadding>
-              <ListItemButton component={RouterLink} to="/dashboard">
-                <ListItemText primary="Dashboard" />
-              </ListItemButton>
-            </ListItem>
+            {user && (
+              <ListItem disablePadding>
+                <ListItemButton component={RouterLink} to="/dashboard">
+                  <ListItemText primary="Dashboard" />
+                </ListItemButton>
+              </ListItem>
+            )}
             {navLinks.map((item) => (
               <ListItem disablePadding key={item.label}>
                 <ListItemButton component={RouterLink} to={item.to}>
@@ -121,13 +111,14 @@ export default function TopBar() {
                 </ListItemButton>
               </ListItem>
             ))}
-            {!user ? (
+            {!user && (
               <ListItem disablePadding>
                 <ListItemButton component={RouterLink} to="/login">
-                  <ListItemText primary="Login" />
+                  <ListItemText primary="Log In" />
                 </ListItemButton>
               </ListItem>
-            ) : (
+            )}
+            {user && (
               <>
                 <ListItem disablePadding>
                   <ListItemButton component={RouterLink} to="/profile">
