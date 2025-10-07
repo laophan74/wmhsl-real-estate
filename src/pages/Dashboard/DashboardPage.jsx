@@ -85,6 +85,11 @@ export default function DashboardPage() {
   const [adminsError, setAdminsError] = useState(null);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState(null);
+  // Add Admin modal state
+  const [addingAdmin, setAddingAdmin] = useState(false);
+  const [adminForm, setAdminForm] = useState({ username: '', password: '', first_name: '', last_name: '', email: '' });
+  const [adminErrors, setAdminErrors] = useState({});
+  const [savingAdmin, setSavingAdmin] = useState(false);
   // Reusable suburb options (mirrors Home form)
   const suburbOptions = [
     'Hornsby', 'Asquith', 'Waitara', 'Hornsby Heights', 'Mount Colah', 'Mount Kuring-gai', 'Berowra', 'Berowra Heights', 'Wahroonga', 'Turramurra', 'Pennant Hills', 'Thornleigh', 'Normanhurst'
@@ -349,6 +354,69 @@ export default function DashboardPage() {
     setMessageForm((f) => ({ ...f, [name]: value }));
   };
 
+  // Add Admin helpers
+  const openAddAdmin = () => {
+    setAdminForm({ username: '', password: '', first_name: '', last_name: '', email: '' });
+    setAdminErrors({});
+    setAddingAdmin(true);
+  };
+  const closeAddAdmin = () => {
+    if (!savingAdmin) setAddingAdmin(false);
+  };
+  const onAdminFormChange = (e) => {
+    const { name, value } = e.target;
+    setAdminForm(f => ({ ...f, [name]: value }));
+    // live validate single field
+    setAdminErrors(prev => {
+      const next = { ...prev };
+      const msg = validateAdminField(name, value, adminForm);
+      if (msg) next[name] = msg; else delete next[name];
+      return next;
+    });
+  };
+  function validateAdminField(name, value, current) {
+    const val = (value||'').trim();
+    switch(name){
+      case 'username': return !val ? 'Username required' : (/^[a-z0-9._-]{3,30}$/i.test(val) ? '' : '3-30 chars, letters/numbers/._-');
+      case 'password': return !val ? 'Password required' : (val.length < 6 ? 'Min 6 chars' : '');
+      case 'first_name': return !val ? 'First name required' : '';
+      case 'last_name': return !val ? 'Last name required' : '';
+      case 'email': return !val ? 'Email required' : (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val) ? '' : 'Invalid email');
+      default: return '';
+    }
+  }
+  function validateAdminForm(data){
+    const errs = {};
+    ['username','password','first_name','last_name','email'].forEach(f => {
+      const msg = validateAdminField(f, data[f], data);
+      if (msg) errs[f] = msg;
+    });
+    return errs;
+  }
+  const saveAdmin = async () => {
+    const trimmed = {
+      username: adminForm.username.trim().toLowerCase(),
+      password: adminForm.password,
+      first_name: adminForm.first_name.trim(),
+      last_name: adminForm.last_name.trim(),
+      email: adminForm.email.trim().toLowerCase(),
+    };
+    const errs = validateAdminForm(trimmed);
+    if (Object.keys(errs).length){ setAdminErrors(errs); return; }
+    try {
+      setSavingAdmin(true);
+      await api.post('/api/v1/admins', trimmed);
+      await fetchAdmins();
+      setAddingAdmin(false);
+      pushToast('Admin created');
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || 'Failed to create admin';
+      alert(msg);
+    } finally {
+      setSavingAdmin(false);
+    }
+  };
+
   const saveEditMessage = async () => {
     if (!editingMessage) return;
     const msgId = editingMessage.id || editingMessage.message_id || editingMessage.text_id;
@@ -492,7 +560,10 @@ export default function DashboardPage() {
               </>
             )}
             {active === "admins" && (
-              <button className="btn" onClick={fetchAdmins}>Refresh</button>
+              <>
+                <button className="btn" onClick={fetchAdmins}><span className="icon">↻</span> Refresh</button>
+                <button className="btn" style={{ marginLeft: 8 }} onClick={openAddAdmin}>Add Admin</button>
+              </>
             )}
             {active === "messages" && (
               <button className="btn" onClick={fetchMessages}>Refresh</button>
@@ -767,6 +838,46 @@ export default function DashboardPage() {
             <div className="modal-footer">
               <button className="btn" onClick={saveEditMessage}>Save</button>
               <button className="btn gray" onClick={closeEditMessage}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {addingAdmin && (
+        <div className="modal-overlay" onClick={closeAddAdmin}>
+          <div className="modal" onClick={(e)=>e.stopPropagation()}>
+            <div className="modal-header"><h3>Add Admin</h3></div>
+            <div className="modal-body">
+              <div className="form-grid">
+                <label>
+                  Username
+                  <input name="username" value={adminForm.username} onChange={onAdminFormChange} className={adminErrors.username? 'err':''} placeholder="newadmin" />
+                  {adminErrors.username && <small className="field-error">{adminErrors.username}</small>}
+                </label>
+                <label>
+                  Password
+                  <input name="password" type="password" value={adminForm.password} onChange={onAdminFormChange} className={adminErrors.password? 'err':''} placeholder="Secret123" />
+                  {adminErrors.password && <small className="field-error">{adminErrors.password}</small>}
+                </label>
+                <label>
+                  First name
+                  <input name="first_name" value={adminForm.first_name} onChange={onAdminFormChange} className={adminErrors.first_name? 'err':''} />
+                  {adminErrors.first_name && <small className="field-error">{adminErrors.first_name}</small>}
+                </label>
+                <label>
+                  Last name
+                  <input name="last_name" value={adminForm.last_name} onChange={onAdminFormChange} className={adminErrors.last_name? 'err':''} />
+                  {adminErrors.last_name && <small className="field-error">{adminErrors.last_name}</small>}
+                </label>
+                <label style={{ gridColumn: '1 / -1' }}>
+                  Email
+                  <input name="email" type="email" value={adminForm.email} onChange={onAdminFormChange} className={adminErrors.email? 'err':''} placeholder="user@example.com" />
+                  {adminErrors.email && <small className="field-error">{adminErrors.email}</small>}
+                </label>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn" onClick={saveAdmin} disabled={savingAdmin || Object.keys(adminErrors).length>0}>{savingAdmin? 'Saving...':'Create'}</button>
+              <button className="btn gray" onClick={closeAddAdmin} disabled={savingAdmin}>Cancel</button>
             </div>
           </div>
         </div>
