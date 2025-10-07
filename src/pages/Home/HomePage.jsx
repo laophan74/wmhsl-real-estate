@@ -163,6 +163,21 @@ export default function HomePage() {
                     </FormControl>
                   </Grid>
 
+                  {/* <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                      <FormLabel>Are you interested in selling a property?</FormLabel>
+                      <RadioGroup
+                        row
+                        name="interested"
+                        value={selling}
+                        onChange={(e) => setSelling(e.target.value)}
+                      >
+                        <FormControlLabel value="yes" control={<Radio />} label="Yes" />
+                        <FormControlLabel value="no" control={<Radio />} label="No" />
+                      </RadioGroup>
+                    </FormControl>
+                  </Grid> */}
+
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <FormLabel>Are you interested in selling a property?</FormLabel>
@@ -176,9 +191,6 @@ export default function HomePage() {
                         <FormControlLabel value="no" control={<Radio />} label="No" />
                       </RadioGroup>
                     </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} sm={6}>
                     <FormControl fullWidth>
                       <FormLabel>Are you interested in buying a property?</FormLabel>
                       <RadioGroup
