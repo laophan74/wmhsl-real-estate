@@ -26,7 +26,8 @@
   flex: 1 1 0;
   display: flex;
   min-height: 500px;
-  height: 100vh;
+  /* Allow content to extend beyond viewport so footer is always reachable */
+  height: auto;
 }
 
 /* left photo column */
@@ -66,8 +67,9 @@
   border: none;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  height: 100%;
+  justify-content: flex-start;
+  height: auto; /* previously 100% which could force overflow */
+  padding-bottom: 24px;
 }
 
 .lead-title {

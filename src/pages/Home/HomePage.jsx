@@ -15,22 +15,55 @@ import {
   MenuItem,
   Select,
   InputLabel,
+  FormHelperText,
 } from "@mui/material";
 import "./HomePage.css";
 
 
 export default function HomePage() {
-  const [selling, setSelling] = React.useState("no");
+  const [selling, setSelling] = React.useState("");
   const [timeframe, setTimeframe] = React.useState("");
-  const [buying, setBuying] = React.useState("no");
+  const [buying, setBuying] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [statusMessage, setStatusMessage] = React.useState("");
   const [showSubmittedMessage, setShowSubmittedMessage] = React.useState(false);
   const [submittedMessageText, setSubmittedMessageText] = React.useState("");
+  const [errors, setErrors] = React.useState({});
+
+  const suburbOptions = [
+    "Hornsby",
+    "Asquith",
+    "Waitara",
+    "Hornsby Heights",
+    "Mount Colah",
+    "Mount Kuring-gai",
+    "Berowra",
+    "Berowra Heights",
+    "Wahroonga",
+    "Turramurra",
+    "Pennant Hills",
+    "Thornleigh",
+    "Normanhurst",
+  ];
+
+  function validate(fields) {
+    const errs = {};
+    if (!fields.first_name) errs.first_name = "First name is required";
+    if (!fields.last_name) errs.last_name = "Last name is required";
+    if (!fields.email) errs.email = "Email is required";
+    // Simple email format check
+    if (fields.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) errs.email = "Invalid email";
+    if (!fields.phone) errs.phone = "Phone number is required";
+    if (fields.phone && !/^[+()\d\s-]{8,20}$/.test(fields.phone)) errs.phone = "Invalid phone number";
+    if (!fields.suburb) errs.suburb = "Suburb is required";
+    if (!fields.timeframe) errs.timeframe = "Timeframe is required";
+    return errs;
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatusMessage("");
+    setErrors({});
     setSubmitting(true);
     try {
       const formEl = e.target;
@@ -41,10 +74,17 @@ export default function HomePage() {
         email: (formData.get("email") || "").toLowerCase(),
         phone: (formData.get("phone") || "").trim(),
         suburb: formData.get("suburb") || "",
-    timeframe: formData.get("timeframe") || "",
-    interested: formData.get("interested") || "no",
-    interested_buying: formData.get("interested_buying") || "no",
+        timeframe: formData.get("timeframe") || "",
+        interested: formData.get("interested") || "",
+        interested_buying: formData.get("interested_buying") || "",
       };
+
+      const vErrors = validate(payload);
+      if (Object.keys(vErrors).length > 0) {
+        setErrors(vErrors);
+        setSubmitting(false);
+        return;
+      }
 
       const res = await fetch(
         "https://wmhsl-real-estate-backend.vercel.app/api/v1/leads/public",
@@ -69,9 +109,9 @@ export default function HomePage() {
 
       // reset form controls
       formEl.reset();
-      setSelling("no");
+  setSelling("");
       setTimeframe("");
-      setBuying("no");
+  setBuying("");
 
       // fetch first message and switch UI to show it
       try {
@@ -125,7 +165,7 @@ export default function HomePage() {
             <CardContent sx={{ p: { xs: 3, md: 5 } }}>
               {!showSubmittedMessage ? (
                 <>
-                  <Typography variant="h4" className="lead-title" gutterBottom>
+                  <Typography variant="h5" className="lead-title" gutterBottom>
                     Thank you for your interest in Stone Real Estate.
                   </Typography>
 
@@ -136,30 +176,61 @@ export default function HomePage() {
                   <Box component="form" onSubmit={handleSubmit}>
                     <Grid container spacing={2}>
                   <Grid item xs={12} sm={6}>
-                    <TextField name="first_name" label="First Name" fullWidth required />
+                    <TextField
+                      name="first_name"
+                      label="First Name"
+                      fullWidth
+                      error={!!errors.first_name}
+                      helperText={errors.first_name}
+                    />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <TextField name="last_name" label="Last Name" fullWidth required />
+                    <TextField
+                      name="last_name"
+                      label="Last Name"
+                      fullWidth
+                      error={!!errors.last_name}
+                      helperText={errors.last_name}
+                    />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField name="email" label="Email Address" type="email" fullWidth required />
+                    <TextField
+                      name="email"
+                      label="Email Address"
+                      type="email"
+                      fullWidth
+                      error={!!errors.email}
+                      helperText={errors.email}
+                    />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField name="phone" label="Phone Number" fullWidth required />
+                    <TextField
+                      name="phone"
+                      label="Phone Number"
+                      fullWidth
+                      error={!!errors.phone}
+                      helperText={errors.phone}
+                    />
                   </Grid>
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth error={!!errors.suburb}>
                       <InputLabel id="suburb-label">Suburb</InputLabel>
                       <Select
                         labelId="suburb-label"
                         name="suburb"
-                        defaultValue="Asquith"
+                        defaultValue=""
                         label="Suburb"
+                        displayEmpty
+                        renderValue={(val) => val || "Select suburb"}
                       >
-                        <MenuItem value="Asquith">Asquith</MenuItem>
-                        <MenuItem value="Hornsby">Hornsby</MenuItem>
-                        <MenuItem value="Waitara">Waitara</MenuItem>
+                        <MenuItem value="">
+                          <em>Select suburb</em>
+                        </MenuItem>
+                        {suburbOptions.map((s) => (
+                          <MenuItem key={s} value={s}>{s}</MenuItem>
+                        ))}
                       </Select>
+                      {errors.suburb && <FormHelperText>{errors.suburb}</FormHelperText>}
                     </FormControl>
                   </Grid>
 
@@ -191,7 +262,7 @@ export default function HomePage() {
                         <FormControlLabel value="no" control={<Radio />} label="No" />
                       </RadioGroup>
                     </FormControl>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth sx={{ mt: 2 }}>
                       <FormLabel>Are you interested in buying a property?</FormLabel>
                       <RadioGroup
                         row
@@ -206,7 +277,7 @@ export default function HomePage() {
                   </Grid>
 
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth error={!!errors.timeframe}>
                       <FormLabel>What is your expected timeframe for selling?</FormLabel>
                       <Select
                         name="timeframe"
@@ -214,13 +285,15 @@ export default function HomePage() {
                         onChange={(e) => setTimeframe(e.target.value)}
                         displayEmpty
                         sx={{ minWidth: 200 }}
+                        renderValue={(val) => val || "Choose timeframe"}
                       >
-                        <MenuItem value=""><em>Choose…</em></MenuItem>
+                        <MenuItem value=""><em>Choose timeframe</em></MenuItem>
                         <MenuItem value="1-3 months">1-3 months</MenuItem>
                         <MenuItem value="3-6 months">3-6 months</MenuItem>
                         <MenuItem value="6+ months">6+ months</MenuItem>
                         <MenuItem value="not sure">Not sure</MenuItem>
                       </Select>
+                      {errors.timeframe && <FormHelperText>{errors.timeframe}</FormHelperText>}
                     </FormControl>
                   </Grid>
 
