@@ -117,30 +117,40 @@ export default function HomePage() {
   setBuying("");
   setSuburbValue("");
 
-      // fetch first message and switch UI to show it
-      try {
-        const resMsg = await fetch(
-          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=100&offset=0"
-        );
-        if (resMsg.ok) {
-          const json = await resMsg.json();
-          const list = Array.isArray(json)
-            ? json
-            : Array.isArray(json?.value)
-            ? json.value
-            : [];
-          const first = list[0];
-          const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
-          setSubmittedMessageText(text || "Thank you! We will get in touch soon.");
-          setShowSubmittedMessage(true);
-        } else {
-          setSubmittedMessageText("Thank you! We will get in touch soon.");
-          setShowSubmittedMessage(true);
+      // Immediately show a fallback thank-you so UI never blocks on messages endpoint
+      setSubmittedMessageText("Thank you! We will get in touch soon.");
+      setShowSubmittedMessage(true);
+
+      // Attempt (non-blocking) to fetch dynamic message; if 401 or error, silently ignore
+      (async () => {
+        try {
+          const controller = new AbortController();
+          const t = setTimeout(() => controller.abort(), 5000);
+          const resMsg = await fetch(
+            "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=1&offset=0",
+            { signal: controller.signal }
+          );
+          clearTimeout(t);
+          if (!resMsg.ok) {
+            // 401 likely means endpoint now protected; keep fallback
+            console.warn("Messages fetch not ok:", resMsg.status);
+            return;
+          }
+            const json = await resMsg.json();
+            const list = Array.isArray(json)
+              ? json
+              : Array.isArray(json?.value)
+              ? json.value
+              : [];
+            const first = list[0];
+            const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
+            if (text) setSubmittedMessageText(text);
+        } catch (errFetch) {
+          if (errFetch?.name !== 'AbortError') {
+            console.warn('Fetch messages failed (non-blocking):', errFetch.message);
+          }
         }
-      } catch (_) {
-        setSubmittedMessageText("Thank you! We will get in touch soon.");
-        setShowSubmittedMessage(true);
-      }
+      })();
     } catch (err) {
       console.error(err);
       setStatusMessage(`Failed to submit form: ${err.message}`);
