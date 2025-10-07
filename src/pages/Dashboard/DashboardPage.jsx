@@ -581,8 +581,12 @@ export default function DashboardPage() {
                             <td>{formatDate(l.metadata?.created_at) || '-'}</td>
                             <td>
                               <div className="row-actions">
-                                <button className="btn small icon-only" aria-label="Edit" title="Edit" onClick={() => openEdit(l)}>✏</button>
-                                <button className="btn danger small icon-only" aria-label="Delete" title="Delete" onClick={() => deleteLead(l)}>🗑</button>
+                                <button className="icon-btn" aria-label="Edit" title="Edit" onClick={() => openEdit(l)}>
+                                  <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                                </button>
+                                <button className="icon-btn danger" aria-label="Delete" title="Delete" onClick={() => deleteLead(l)}>
+                                  <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6v-2a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+                                </button>
                               </div>
                             </td>
                           </tr>

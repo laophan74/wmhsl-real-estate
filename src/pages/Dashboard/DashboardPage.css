@@ -66,6 +66,17 @@
 .btn.icon-only{display:inline-flex;align-items:center;justify-content:center;gap:4px}
 .btn.icon-only span.icon{margin-right:0}
 .btn .icon{margin-right:4px;font-size:14px;line-height:1}
+
+/* Modern compact square icon buttons */
+.icon-btn{background:#e2e8f0;border:1px solid #cbd5e1;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;padding:0;transition:background .18s,border-color .18s,transform .18s;line-height:0}
+.icon-btn svg{width:18px;height:18px;stroke:#334155;stroke-width:1.8;fill:none;pointer-events:none}
+.icon-btn:hover{background:#cfd8e3}
+.icon-btn:active{transform:scale(.94)}
+.icon-btn:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.icon-btn.danger{background:#fee2e2;border-color:#fecaca}
+.icon-btn.danger svg{stroke:#b91c1c}
+.icon-btn.danger:hover{background:#fecaca}
+.row-actions .icon-btn + .icon-btn{margin-left:6px}
 .btn.gray{background:#e5e7eb;color:#111827}
 .btn.danger{background:#dc2626}
 .row-actions{display:flex;gap:6px}
