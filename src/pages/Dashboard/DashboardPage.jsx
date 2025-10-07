@@ -551,9 +551,9 @@ export default function DashboardPage() {
                         const c = l.contact || {};
                         return (
                           <tr key={l.lead_id || l.id || `${idx}-${leadPage}`}>
-                            <td>{c.first_name || ''}</td>
-                            <td>{c.last_name || ''}</td>
-                            <td>
+                            <td data-label="First Name">{c.first_name || ''}</td>
+                            <td data-label="Last Name">{c.last_name || ''}</td>
+                            <td data-label="Score">
                               {(() => {
                                 const score = getLeadScore(l);
                                 const val = score ?? '-';
@@ -566,7 +566,7 @@ export default function DashboardPage() {
                                 return <span style={{ fontWeight:600, color }}>{val}</span>;
                               })()}
                             </td>
-                            <td>
+                            <td data-label="Status">
                               {(() => {
                                 const cat = getLeadCategory(l) || '-';
                                 let color = '#374151';
@@ -576,15 +576,15 @@ export default function DashboardPage() {
                                 return <span style={{ fontWeight:600, letterSpacing:0.5, color }}>{cat}</span>;
                               })()}
                             </td>
-                            <td>{toYesNo(c.selling_interest ?? c.interested)}</td>
-                            <td>{toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
-                            <td>{c.suburb || ''}</td>
-                            <td>{c.timeframe || ''}</td>
-                            <td>{getPreferredContact(l)}</td>
-                            <td>{c.email || ''}</td>
-                            <td>{c.phone || ''}</td>
-                            <td>{formatDate(l.metadata?.created_at) || '-'}</td>
-                            <td>
+                            <td data-label="Selling">{toYesNo(c.selling_interest ?? c.interested)}</td>
+                            <td data-label="Buying">{toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
+                            <td data-label="Suburb">{c.suburb || ''}</td>
+                            <td data-label="Timeframe">{c.timeframe || ''}</td>
+                            <td data-label="Preferred Contact">{getPreferredContact(l)}</td>
+                            <td data-label="Email">{c.email || ''}</td>
+                            <td data-label="Phone">{c.phone || ''}</td>
+                            <td data-label="Created">{formatDate(l.metadata?.created_at) || '-'}</td>
+                            <td data-label="Actions">
                               <div className="row-actions">
                                 <button className="btn small" onClick={() => openEdit(l)}>Edit</button>
                                 <button className="btn danger small" onClick={() => deleteLead(l)}>Delete</button>
