@@ -18,6 +18,8 @@ import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import "./TopBar.css";
 import { useAuth } from "../../../auth/useAuth";
+import SpaceDashboardOutlinedIcon from "@mui/icons-material/SpaceDashboardOutlined";
+import LoginIcon from "@mui/icons-material/Login";
 // Removed icon usage for Dashboard/Login per updated requirements
 
 const navLinks = [
@@ -48,10 +50,14 @@ export default function TopBar() {
           {/* Desktop nav */}
           <Box sx={{ ml: "auto", display: { xs: "none", md: "flex" }, gap: 1, alignItems: "center" }}>
             {user && (
-              <Button component={RouterLink} to="/dashboard" className="topbar-link">Dashboard</Button>
+              <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard">
+                <SpaceDashboardOutlinedIcon />
+              </IconButton>
             )}
             {!user && (
-              <Button component={RouterLink} to="/login" className="topbar-link">Log In</Button>
+              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
+                <LoginIcon />
+              </IconButton>
             )}
             {user && (
               <>
@@ -76,10 +82,14 @@ export default function TopBar() {
           {/* Burger button (mobile) */}
           <Box sx={{ ml: "auto", display: { xs: "inline-flex", md: "none" }, alignItems: "center", gap: 1 }}>
             {user && (
-              <Button component={RouterLink} to="/dashboard" className="topbar-link" sx={{ minWidth: 'auto' }}>Dashboard</Button>
+              <IconButton component={RouterLink} to="/dashboard" aria-label="Dashboard" title="Dashboard">
+                <SpaceDashboardOutlinedIcon />
+              </IconButton>
             )}
             {!user && (
-              <Button component={RouterLink} to="/login" className="topbar-link" sx={{ minWidth: 'auto' }}>Log In</Button>
+              <IconButton component={RouterLink} to="/login" aria-label="Login" title="Login">
+                <LoginIcon />
+              </IconButton>
             )}
             {user && (
               <IconButton aria-label="account" onClick={handleMenuOpen} size="large">
