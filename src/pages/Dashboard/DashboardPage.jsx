@@ -159,11 +159,61 @@ export default function DashboardPage() {
     if (!ok) return;
     try {
       await api.delete(`/api/v1/leads/${leadId}`);
-      // Optimistically remove from list
-      setLeads((list) => list.filter((x) => (x.lead_id || x.id) !== leadId));
+      // Refresh from server to keep data authoritative
+      await fetchLeads();
     } catch (err) {
       alert(`Failed to delete lead: ${err.message}`);
     }
+  };
+
+  // Preferred contact extraction (email/phone/other) if present
+  function getPreferredContact(lead) {
+    const v = lead?.contact?.preferred_contact || lead?.metadata?.preferred_contact || lead?.metadata?.custom_fields?.preferred_contact;
+    if (!v) return '-';
+    return String(v).trim();
+  }
+
+  // Export leads to CSV (Excel compatible)
+  const exportLeads = () => {
+    if (!leads || leads.length === 0) return;
+    const headers = [
+      'First Name','Last Name','Score','Status','Selling','Buying','Suburb','Timeframe','Preferred Contact','Email','Phone','Created'
+    ];
+    const rows = leads.map(l => {
+      const c = l.contact || {};
+      return [
+        c.first_name || '',
+        c.last_name || '',
+        getLeadScore(l) ?? '',
+        getLeadCategory(l) || '',
+        toYesNo(c.selling_interest ?? c.interested),
+        toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest),
+        c.suburb || '',
+        c.timeframe || '',
+        getPreferredContact(l),
+        c.email || '',
+        c.phone || '',
+        formatDate(l.metadata?.created_at) || ''
+      ];
+    });
+    const escape = (val) => {
+      const s = String(val ?? '');
+      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+      return s;
+    };
+    const csv = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const ts = new Date();
+    const pad = (n)=> String(n).padStart(2,'0');
+    const name = `leads_export_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.csv`;
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
@@ -325,7 +375,10 @@ export default function DashboardPage() {
           <h2>{TABS.find((t) => t.key === active)?.label}</h2>
           <div className="header-actions">
             {active === "leads" && (
-              <button className="btn" onClick={fetchLeads}>Refresh</button>
+              <>
+                <button className="btn" onClick={fetchLeads}>Refresh</button>
+                <button className="btn" onClick={exportLeads} disabled={leads.length === 0} style={{ marginLeft: 8 }}>Export</button>
+              </>
             )}
             {active === "admins" && (
               <button className="btn" onClick={fetchAdmins}>Refresh</button>
@@ -349,40 +402,47 @@ export default function DashboardPage() {
                 <table className="leads-table">
                   <thead>
                     <tr>
-                      <th>#</th>
-                      <th>Name</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Suburb</th>
-                      <th>Timeframe</th>
-                      <th>Category</th>
+                      <th>First Name</th>
+                      <th>Last Name</th>
+                      <th>Score</th>
+                      <th>Status</th>
                       <th>Selling</th>
                       <th>Buying</th>
+                      <th>Suburb</th>
+                      <th>Timeframe</th>
+                      <th>Preferred Contact</th>
+                      <th>Email</th>
+                      <th>Phone</th>
                       <th>Created</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {leads.map((l, idx) => (
-                      <tr key={l.lead_id || l.id || idx}>
-                        <td className="mono">{idx + 1}</td>
-                        <td>{(l.contact?.first_name || "") + " " + (l.contact?.last_name || "")}</td>
-                        <td>{l.contact?.email}</td>
-                        <td>{l.contact?.phone}</td>
-                        <td>{l.contact?.suburb}</td>
-                        <td>{l.contact?.timeframe}</td>
-                        <td>{getLeadCategory(l)}</td>
-                        <td>{toYesNo(l.contact?.selling_interest ?? l.contact?.interested)}</td>
-                        <td>{toYesNo(l.contact?.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
-                        <td>{formatDate(l.metadata?.created_at) || "-"}</td>
-                        <td>
-                          <div className="row-actions">
-                            <button className="btn small" onClick={() => openEdit(l)}>Edit</button>
-                            <button className="btn danger small" onClick={() => deleteLead(l)}>Delete</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                    {leads.map((l, idx) => {
+                      const c = l.contact || {};
+                      return (
+                        <tr key={l.lead_id || l.id || idx}>
+                          <td>{c.first_name || ''}</td>
+                          <td>{c.last_name || ''}</td>
+                          <td>{getLeadScore(l) ?? '-'}</td>
+                          <td>{getLeadCategory(l)}</td>
+                          <td>{toYesNo(c.selling_interest ?? c.interested)}</td>
+                          <td>{toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
+                          <td>{c.suburb || ''}</td>
+                          <td>{c.timeframe || ''}</td>
+                          <td>{getPreferredContact(l)}</td>
+                          <td>{c.email || ''}</td>
+                          <td>{c.phone || ''}</td>
+                          <td>{formatDate(l.metadata?.created_at) || '-'}</td>
+                          <td>
+                            <div className="row-actions">
+                              <button className="btn small" onClick={() => openEdit(l)}>Edit</button>
+                              <button className="btn danger small" onClick={() => deleteLead(l)}>Delete</button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               )}
