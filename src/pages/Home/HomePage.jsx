@@ -24,6 +24,7 @@ export default function HomePage() {
   const [selling, setSelling] = React.useState("");
   const [timeframe, setTimeframe] = React.useState("");
   const [buying, setBuying] = React.useState("");
+  const [suburbValue, setSuburbValue] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
   const [statusMessage, setStatusMessage] = React.useState("");
   const [showSubmittedMessage, setShowSubmittedMessage] = React.useState(false);
@@ -57,6 +58,8 @@ export default function HomePage() {
     if (fields.phone && !/^[+()\d\s-]{8,20}$/.test(fields.phone)) errs.phone = "Invalid phone number";
     if (!fields.suburb) errs.suburb = "Suburb is required";
     if (!fields.timeframe) errs.timeframe = "Timeframe is required";
+    if (!fields.interested) errs.interested = "Please select an option";
+    if (!fields.interested_buying) errs.interested_buying = "Please select an option";
     return errs;
   }
 
@@ -73,7 +76,7 @@ export default function HomePage() {
         last_name: (formData.get("last_name") || "").trim(),
         email: (formData.get("email") || "").toLowerCase(),
         phone: (formData.get("phone") || "").trim(),
-        suburb: formData.get("suburb") || "",
+  suburb: suburbValue || formData.get("suburb") || "",
         timeframe: formData.get("timeframe") || "",
         interested: formData.get("interested") || "",
         interested_buying: formData.get("interested_buying") || "",
@@ -110,8 +113,9 @@ export default function HomePage() {
       // reset form controls
       formEl.reset();
   setSelling("");
-      setTimeframe("");
+  setTimeframe("");
   setBuying("");
+  setSuburbValue("");
 
       // fetch first message and switch UI to show it
       try {
@@ -214,13 +218,13 @@ export default function HomePage() {
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <FormControl fullWidth error={!!errors.suburb}>
-                      <InputLabel id="suburb-label">Suburb</InputLabel>
+                      <FormLabel>Suburb</FormLabel>
                       <Select
-                        labelId="suburb-label"
                         name="suburb"
-                        defaultValue=""
-                        label="Suburb"
+                        value={suburbValue}
+                        onChange={(e) => setSuburbValue(e.target.value)}
                         displayEmpty
+                        sx={{ minWidth: 200 }}
                         renderValue={(val) => val || "Select suburb"}
                       >
                         <MenuItem value="">
@@ -250,29 +254,31 @@ export default function HomePage() {
                   </Grid> */}
 
                   <Grid item xs={12} sm={6}>
-                    <FormControl fullWidth>
+                    <FormControl fullWidth error={!!errors.interested}>
                       <FormLabel>Are you interested in selling a property?</FormLabel>
                       <RadioGroup
                         row
                         name="interested"
                         value={selling}
-                        onChange={(e) => setSelling(e.target.value)}
+                        onChange={(e) => { setSelling(e.target.value); setErrors(prev => ({ ...prev, interested: undefined })); }}
                       >
                         <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                         <FormControlLabel value="no" control={<Radio />} label="No" />
                       </RadioGroup>
+                      {errors.interested && <FormHelperText>{errors.interested}</FormHelperText>}
                     </FormControl>
-                    <FormControl fullWidth sx={{ mt: 2 }}>
+                    <FormControl fullWidth sx={{ mt: 2 }} error={!!errors.interested_buying}>
                       <FormLabel>Are you interested in buying a property?</FormLabel>
                       <RadioGroup
                         row
                         name="interested_buying"
                         value={buying}
-                        onChange={(e) => setBuying(e.target.value)}
+                        onChange={(e) => { setBuying(e.target.value); setErrors(prev => ({ ...prev, interested_buying: undefined })); }}
                       >
                         <FormControlLabel value="yes" control={<Radio />} label="Yes" />
                         <FormControlLabel value="no" control={<Radio />} label="No" />
                       </RadioGroup>
+                      {errors.interested_buying && <FormHelperText>{errors.interested_buying}</FormHelperText>}
                     </FormControl>
                   </Grid>
 
