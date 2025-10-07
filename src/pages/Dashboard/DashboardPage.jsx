@@ -94,6 +94,7 @@ export default function DashboardPage() {
   const [leadQuery, setLeadQuery] = useState('');
   const [leadPage, setLeadPage] = useState(0); // 0-based
   const pageSize = 5;
+  const [savingLead, setSavingLead] = useState(false);
   // Message edit modal state
   const [editingMessage, setEditingMessage] = useState(null);
   const [messageForm, setMessageForm] = useState({ message: "", tags: "", edited_by: "" });
@@ -148,6 +149,7 @@ export default function DashboardPage() {
     const body = { contact };
 
     try {
+      setSavingLead(true);
       const { data: updated } = await api.patch(`/api/v1/leads/${leadId}`, body);
       setLeads((list) => list.map((x) => {
         const idX = x.lead_id || x.id;
@@ -159,6 +161,8 @@ export default function DashboardPage() {
       closeEdit();
     } catch (err) {
       alert(`Failed to update lead: ${err.message}`);
+    } finally {
+      setSavingLead(false);
     }
   };
 
@@ -499,9 +503,10 @@ export default function DashboardPage() {
                                 const score = getLeadScore(l);
                                 const val = score ?? '-';
                                 const cat = getLeadCategory(l);
+                                // New mapping: HOT = green, WARM = yellow, COLD = red
                                 let color = '#374151';
-                                if (cat === 'HOT') color = '#d97706'; // amber
-                                else if (cat === 'WARM') color = '#059669'; // green
+                                if (cat === 'HOT') color = '#059669'; // green
+                                else if (cat === 'WARM') color = '#d97706'; // yellow/amber
                                 else if (cat === 'COLD') color = '#dc2626'; // red
                                 return <span style={{ fontWeight:600, color }}>{val}</span>;
                               })()}
@@ -510,9 +515,9 @@ export default function DashboardPage() {
                               {(() => {
                                 const cat = getLeadCategory(l) || '-';
                                 let color = '#374151';
-                                if (cat === 'WARM') color = '#059669';
-                                if (cat === 'COLD') color = '#dc2626';
-                                if (cat === 'HOT') color = '#d97706';
+                                if (cat === 'HOT') color = '#059669';
+                                else if (cat === 'WARM') color = '#d97706';
+                                else if (cat === 'COLD') color = '#dc2626';
                                 return <span style={{ fontWeight:600, letterSpacing:0.5, color }}>{cat}</span>;
                               })()}
                             </td>
@@ -669,7 +674,9 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn" onClick={saveEdit}>Save</button>
+              <button className="btn" onClick={saveEdit} disabled={savingLead}>
+                {savingLead ? 'Saving...' : 'Save'}
+              </button>
               <button className="btn gray" onClick={closeEdit}>Cancel</button>
             </div>
           </div>
