@@ -25,19 +25,19 @@ export default function LoginPage() {
     <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "70vh", p: 2 }}>
       <Card sx={{ width: 420, maxWidth: "100%", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Welcome back</Typography>
+          <Typography variant="h5" sx={{ fontWeight: 800, mb: 1 }}>Welcome</Typography>
           <Typography variant="body2" sx={{ color: "#6b7280", mb: 3 }}>Sign in to continue</Typography>
 
           <Box component="form" onSubmit={onSubmit}>
             <TextField
-              label="Email"
-              type="email"
+              label="Username"
+              type="text"
               fullWidth
               required
               margin="normal"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              InputProps={{ startAdornment: <InputAdornment position="start">📧</InputAdornment> }}
+              InputProps={{ startAdornment: <InputAdornment position="start">�</InputAdornment> }}
             />
             <TextField
               label="Password"
