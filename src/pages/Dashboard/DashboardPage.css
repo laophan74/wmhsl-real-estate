@@ -75,14 +75,14 @@
   box-shadow:0 2px 8px rgba(16,24,40,0.04);
 }
 
-.table-wrap{overflow-x:auto;overflow-y:hidden;width:100%;}
+.table-wrap{position:relative;max-width:100%;overflow-x:auto;overflow-y:hidden;}
 .table-wrap::-webkit-scrollbar{height:8px}
 .table-wrap::-webkit-scrollbar-track{background:transparent}
 .table-wrap::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
 .table-wrap:after{content:'';display:block;height:1px;}
 
-/* Keep a wider natural table so small screens get a horizontal scrollbar */
-.leads-table{width:100%;min-width:1400px;border-collapse:collapse;}
+/* Natural intrinsic width; will shrink until min-content then overflow horizontally */
+.leads-table{border-collapse:collapse;width:max-content;min-width:100%;}
 .leads-table th,.leads-table td{white-space:nowrap}
 .leads-table th, .leads-table td{padding:10px 8px;border-bottom:1px solid #eef2f7;text-align:left}
 .leads-table th{background:#f1f5f9;color:var(--muted);font-weight:600;font-size:13px}
@@ -93,7 +93,20 @@
 .empty{padding:40px;text-align:center;color:var(--muted)}
 .empty.error{color:#b91c1c}
 
-/* Removed previous responsive hiding & stacking; rely on horizontal scroll instead */
+/* Responsive density adjustments (no column hiding, just tighter spacing) */
+@media (max-width:1000px){
+  .leads-table th,.leads-table td{padding:8px 6px;font-size:13px}
+}
+@media (max-width:780px){
+  .leads-table th,.leads-table td{padding:6px 6px;font-size:12px}
+  .btn.small{font-size:11px;padding:3px 6px}
+}
+@media (max-width:560px){
+  .leads-table th,.leads-table td{padding:5px 4px;font-size:11.5px}
+  .row-actions{flex-direction:column;align-items:flex-start;gap:4px}
+}
+/* Prevent whole page horizontal scroll; only table-wrap should scroll */
+body, .dashboard-root, .dashboard-main{overflow-x:hidden;}
 
 /* Modal styles */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000}
