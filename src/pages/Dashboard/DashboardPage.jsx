@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import "./DashboardPage.css";
 import { api } from "../../lib/api";
+import * as XLSX from 'xlsx';
 import { useAuth } from "../../auth/useAuth";
 
 const TABS = [
@@ -84,6 +85,11 @@ export default function DashboardPage() {
   const [adminsError, setAdminsError] = useState(null);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState(null);
+  // Leads table UX state
+  const [leadSort, setLeadSort] = useState({ field: 'created', direction: 'desc' });
+  const [leadQuery, setLeadQuery] = useState('');
+  const [leadPage, setLeadPage] = useState(0); // 0-based
+  const pageSize = 5;
   // Message edit modal state
   const [editingMessage, setEditingMessage] = useState(null);
   const [messageForm, setMessageForm] = useState({ message: "", tags: "", edited_by: "" });
@@ -176,45 +182,93 @@ export default function DashboardPage() {
   // Export leads to CSV (Excel compatible)
   const exportLeads = () => {
     if (!leads || leads.length === 0) return;
-    const headers = [
-      'First Name','Last Name','Score','Status','Selling','Buying','Suburb','Timeframe','Preferred Contact','Email','Phone','Created'
-    ];
-    const rows = leads.map(l => {
+    const data = leads.map(l => {
       const c = l.contact || {};
-      return [
-        c.first_name || '',
-        c.last_name || '',
-        getLeadScore(l) ?? '',
-        getLeadCategory(l) || '',
-        toYesNo(c.selling_interest ?? c.interested),
-        toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest),
-        c.suburb || '',
-        c.timeframe || '',
-        getPreferredContact(l),
-        c.email || '',
-        c.phone || '',
-        formatDate(l.metadata?.created_at) || ''
-      ];
+      return {
+        'First Name': c.first_name || '',
+        'Last Name': c.last_name || '',
+        'Score': getLeadScore(l) ?? '',
+        'Status': getLeadCategory(l) || '',
+        'Selling': toYesNo(c.selling_interest ?? c.interested),
+        'Buying': toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest),
+        'Suburb': c.suburb || '',
+        'Timeframe': c.timeframe || '',
+        'Preferred Contact': getPreferredContact(l),
+        'Email': c.email || '',
+        'Phone': c.phone || '',
+        'Created': formatDate(l.metadata?.created_at) || ''
+      };
     });
-    const escape = (val) => {
-      const s = String(val ?? '');
-      if (/[",\n]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
-      return s;
-    };
-    const csv = [headers.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Leads');
     const ts = new Date();
     const pad = (n)=> String(n).padStart(2,'0');
-    const name = `leads_export_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.csv`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const name = `leads_export_${ts.getFullYear()}${pad(ts.getMonth()+1)}${pad(ts.getDate())}_${pad(ts.getHours())}${pad(ts.getMinutes())}${pad(ts.getSeconds())}.xlsx`;
+    XLSX.writeFile(wb, name);
   };
+
+  const toggleSort = (field) => {
+    setLeadSort(s => {
+      if (s.field === field) {
+        const nextDir = s.direction === 'asc' ? 'desc' : 'asc';
+        return { field, direction: nextDir };
+      }
+      return { field, direction: 'asc' };
+    });
+  };
+
+  const filteredSortedLeads = useMemo(() => {
+    let arr = [...leads];
+    if (leadQuery.trim()) {
+      const q = leadQuery.trim().toLowerCase();
+      arr = arr.filter(l => {
+        const c = l.contact || {};
+        const hay = [c.first_name, c.last_name, c.email, c.phone, c.suburb, c.timeframe, getLeadCategory(l), getPreferredContact(l)]
+          .filter(Boolean)
+          .map(String)
+          .join(' ') // join all fields
+          .toLowerCase();
+        return hay.includes(q);
+      });
+    }
+    const { field, direction } = leadSort;
+    const dir = direction === 'asc' ? 1 : -1;
+    arr.sort((a,b) => {
+      const cA = a.contact || {};
+      const cB = b.contact || {};
+      let vA, vB;
+      switch(field){
+        case 'first_name': vA=cA.first_name||''; vB=cB.first_name||''; break;
+        case 'last_name': vA=cA.last_name||''; vB=cB.last_name||''; break;
+        case 'score': vA=getLeadScore(a)||0; vB=getLeadScore(b)||0; break;
+        case 'status': vA=getLeadCategory(a)||''; vB=getLeadCategory(b)||''; break;
+        case 'selling': vA=toYesNo(cA.selling_interest ?? cA.interested); vB=toYesNo(cB.selling_interest ?? cB.interested); break;
+        case 'buying': vA=toYesNo(cA.buying_interest ?? a.metadata?.custom_fields?.buying_interest); vB=toYesNo(cB.buying_interest ?? b.metadata?.custom_fields?.buying_interest); break;
+        case 'suburb': vA=cA.suburb||''; vB=cB.suburb||''; break;
+        case 'timeframe': vA=cA.timeframe||''; vB=cB.timeframe||''; break;
+        case 'preferred_contact': vA=getPreferredContact(a); vB=getPreferredContact(b); break;
+        case 'email': vA=cA.email||''; vB=cB.email||''; break;
+        case 'phone': vA=cA.phone||''; vB=cB.phone||''; break;
+        case 'created': vA=a.metadata?.created_at||''; vB=b.metadata?.created_at||''; break;
+        default: vA=''; vB='';
+      }
+      if (vA < vB) return -1 * dir;
+      if (vA > vB) return 1 * dir;
+      return 0;
+    });
+    return arr;
+  }, [leads, leadQuery, leadSort]);
+
+  const paginatedLeads = useMemo(() => {
+    const start = leadPage * pageSize;
+    return filteredSortedLeads.slice(start, start + pageSize);
+  }, [filteredSortedLeads, leadPage]);
+
+  useEffect(() => {
+    // Reset to first page when filter or sort changes
+    setLeadPage(0);
+  }, [leadQuery, leadSort]);
 
   const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
 
@@ -399,52 +453,75 @@ export default function DashboardPage() {
               ) : leads.length === 0 ? (
                 <div className="empty">No leads found.</div>
               ) : (
-                <table className="leads-table">
-                  <thead>
-                    <tr>
-                      <th>First Name</th>
-                      <th>Last Name</th>
-                      <th>Score</th>
-                      <th>Status</th>
-                      <th>Selling</th>
-                      <th>Buying</th>
-                      <th>Suburb</th>
-                      <th>Timeframe</th>
-                      <th>Preferred Contact</th>
-                      <th>Email</th>
-                      <th>Phone</th>
-                      <th>Created</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {leads.map((l, idx) => {
-                      const c = l.contact || {};
-                      return (
-                        <tr key={l.lead_id || l.id || idx}>
-                          <td>{c.first_name || ''}</td>
-                          <td>{c.last_name || ''}</td>
-                          <td>{getLeadScore(l) ?? '-'}</td>
-                          <td>{getLeadCategory(l)}</td>
-                          <td>{toYesNo(c.selling_interest ?? c.interested)}</td>
-                          <td>{toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
-                          <td>{c.suburb || ''}</td>
-                          <td>{c.timeframe || ''}</td>
-                          <td>{getPreferredContact(l)}</td>
-                          <td>{c.email || ''}</td>
-                          <td>{c.phone || ''}</td>
-                          <td>{formatDate(l.metadata?.created_at) || '-'}</td>
-                          <td>
-                            <div className="row-actions">
-                              <button className="btn small" onClick={() => openEdit(l)}>Edit</button>
-                              <button className="btn danger small" onClick={() => deleteLead(l)}>Delete</button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <>
+                  <div style={{ display:'flex', gap:12, alignItems:'center', marginBottom:12 }}>
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={leadQuery}
+                      onChange={(e)=>setLeadQuery(e.target.value)}
+                      style={{ padding:'6px 10px', border:'1px solid #d1d5db', borderRadius:4, minWidth:200 }}
+                    />
+                    <div style={{ fontSize:12, color:'#6b7280' }}>
+                      Showing {paginatedLeads.length} of {filteredSortedLeads.length} (page {leadPage+1}/{Math.max(1, Math.ceil(filteredSortedLeads.length / pageSize))})
+                    </div>
+                  </div>
+                  <table className="leads-table">
+                    <thead>
+                      <tr>
+                        <th onClick={()=>toggleSort('first_name')} className="sortable">First Name {leadSort.field==='first_name' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('last_name')} className="sortable">Last Name {leadSort.field==='last_name' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('score')} className="sortable">Score {leadSort.field==='score' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('status')} className="sortable">Status {leadSort.field==='status' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('selling')} className="sortable">Selling {leadSort.field==='selling' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('buying')} className="sortable">Buying {leadSort.field==='buying' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('suburb')} className="sortable">Suburb {leadSort.field==='suburb' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('timeframe')} className="sortable">Timeframe {leadSort.field==='timeframe' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('preferred_contact')} className="sortable">Preferred Contact {leadSort.field==='preferred_contact' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('email')} className="sortable">Email {leadSort.field==='email' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('phone')} className="sortable">Phone {leadSort.field==='phone' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('created')} className="sortable">Created {leadSort.field==='created' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedLeads.map((l, idx) => {
+                        const c = l.contact || {};
+                        return (
+                          <tr key={l.lead_id || l.id || `${idx}-${leadPage}`}>
+                            <td>{c.first_name || ''}</td>
+                            <td>{c.last_name || ''}</td>
+                            <td>{getLeadScore(l) ?? '-'}</td>
+                            <td>{getLeadCategory(l)}</td>
+                            <td>{toYesNo(c.selling_interest ?? c.interested)}</td>
+                            <td>{toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
+                            <td>{c.suburb || ''}</td>
+                            <td>{c.timeframe || ''}</td>
+                            <td>{getPreferredContact(l)}</td>
+                            <td>{c.email || ''}</td>
+                            <td>{c.phone || ''}</td>
+                            <td>{formatDate(l.metadata?.created_at) || '-'}</td>
+                            <td>
+                              <div className="row-actions">
+                                <button className="btn small" onClick={() => openEdit(l)}>Edit</button>
+                                <button className="btn danger small" onClick={() => deleteLead(l)}>Delete</button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                  <div style={{ display:'flex', justifyContent:'space-between', marginTop:12 }}>
+                    <div style={{ fontSize:12, color:'#6b7280' }}>
+                      Page {leadPage + 1} of {Math.max(1, Math.ceil(filteredSortedLeads.length / pageSize))}
+                    </div>
+                    <div style={{ display:'flex', gap:8 }}>
+                      <button className="btn small" disabled={leadPage===0} onClick={()=>setLeadPage(p=>Math.max(0,p-1))}>Prev</button>
+                      <button className="btn small" disabled={(leadPage+1) >= Math.ceil(filteredSortedLeads.length / pageSize)} onClick={()=>setLeadPage(p=>p+1)}>Next</button>
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           )}
