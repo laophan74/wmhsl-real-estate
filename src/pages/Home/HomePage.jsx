@@ -332,19 +332,8 @@ export default function HomePage() {
                   </Box>
                 </>
               ) : (
-                <Box sx={{ minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
-                  <Typography
-                    sx={{
-                      fontFamily: 'Poppins, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-                      fontSize: { xs: '1.5rem', sm: '2rem', md: '2.25rem' },
-                      fontWeight: 800,
-                      lineHeight: 1.3,
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.03em',
-                      color: '#111827',
-                      whiteSpace: 'pre-wrap',
-                    }}
-                  >
+                <Box sx={{ minHeight: 120, display: 'flex', alignItems: 'center' }}>
+                  <Typography variant="h5" className="lead-title" gutterBottom sx={{ whiteSpace: 'pre-wrap', mb: 0 }}>
                     {submittedMessageText}
                   </Typography>
                 </Box>
