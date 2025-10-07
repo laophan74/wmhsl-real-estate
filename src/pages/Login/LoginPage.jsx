@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/useAuth";
-import { Box, Card, CardContent, TextField, Button, Typography, InputAdornment } from "@mui/material";
+import { Box, Card, CardContent, TextField, Button, Typography, InputAdornment, Snackbar, Alert } from "@mui/material";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -10,15 +10,40 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [toast, setToast] = useState({ open: false, type: 'success', message: '' });
+
+  // Basic client validation rules
+  function validate(u, p){
+    const errs = {};
+    const nu = (u||'').trim();
+    if(!nu) errs.username = 'Username is required';
+    else if(nu.length < 3) errs.username = 'At least 3 characters';
+    else if(!/^[a-z0-9._-]+$/i.test(nu)) errs.username = 'Only letters, numbers, . _ -';
+    if(!p) errs.password = 'Password is required';
+    else if(p.length < 6) errs.password = 'Min 6 characters';
+    return errs;
+  }
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setFieldErrors({});
+    const errs = validate(username, password);
+    if(Object.keys(errs).length){
+      setFieldErrors(errs);
+      return;
+    }
     setLoading(true);
-  const res = await login(username, password);
+    const res = await login(username, password);
     setLoading(false);
-    if (res.ok) navigate("/dashboard");
-    else setError(res.message || "Login failed. Please try again.");
+    if (res.ok){
+      setToast({ open:true, type:'success', message:'Signed in successfully' });
+      setTimeout(()=> navigate('/dashboard'), 600);
+    } else {
+      setError(res.message || 'Login failed. Please try again.');
+      setToast({ open:true, type:'error', message: res.message || 'Login failed' });
+    }
   };
 
   return (
@@ -36,7 +61,9 @@ export default function LoginPage() {
               required
               margin="normal"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => { setUsername(e.target.value); if(fieldErrors.username) setFieldErrors(f=>({ ...f, username: undefined })); }}
+              error={!!fieldErrors.username}
+              helperText={fieldErrors.username}
               InputProps={{ startAdornment: <InputAdornment position="start">👤</InputAdornment> }}
             />
             <TextField
@@ -46,7 +73,9 @@ export default function LoginPage() {
               required
               margin="normal"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => { setPassword(e.target.value); if(fieldErrors.password) setFieldErrors(f=>({ ...f, password: undefined })); }}
+              error={!!fieldErrors.password}
+              helperText={fieldErrors.password}
               InputProps={{ startAdornment: <InputAdornment position="start">🔒</InputAdornment> }}
             />
 
@@ -56,6 +85,17 @@ export default function LoginPage() {
               {loading ? "Signing in…" : "Sign in"}
             </Button>
           </Box>
+
+          <Snackbar
+            open={toast.open}
+            autoHideDuration={3000}
+            onClose={() => setToast(t=>({ ...t, open:false }))}
+            anchorOrigin={{ vertical:'top', horizontal:'center' }}
+          >
+            <Alert severity={toast.type} variant="filled" sx={{ width:'100%' }} onClose={() => setToast(t=>({ ...t, open:false }))}>
+              {toast.message}
+            </Alert>
+          </Snackbar>
 
         </CardContent>
       </Card>
