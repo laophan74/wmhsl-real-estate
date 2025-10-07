@@ -1,5 +1,5 @@
 .topbar {
-  background: #0f172a; /* match dashboard sidebar */
+  background: #0f172a !important; /* match dashboard sidebar */
   color: #ffffff;
   border-bottom: none;
 }
