@@ -562,7 +562,14 @@ export default function DashboardPage() {
             {active === "admins" && (
               <>
                 <button className="btn" onClick={fetchAdmins}><span className="icon">↻</span> Refresh</button>
-                <button className="btn" style={{ marginLeft: 8 }} onClick={openAddAdmin}>Add Admin</button>
+                <button className="btn" style={{ marginLeft: 8 }} onClick={openAddAdmin}>
+                  <span className="icon" style={{ marginRight:4, display:'inline-flex' }}>
+                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 5v14"/><path d="M5 12h14"/>
+                    </svg>
+                  </span>
+                  Add New Admin
+                </button>
               </>
             )}
             {active === "messages" && (
@@ -739,7 +746,9 @@ export default function DashboardPage() {
                           <td>
                             <div className="inline-actions">
                               <span className="message-text">{text}</span>
-                              <button className="btn small" onClick={() => openEditMessage(m)}>Edit</button>
+                              <button className="icon-btn" aria-label="Edit message" title="Edit message" onClick={() => openEditMessage(m)}>
+                                <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -845,7 +854,7 @@ export default function DashboardPage() {
       {addingAdmin && (
         <div className="modal-overlay" onClick={closeAddAdmin}>
           <div className="modal" onClick={(e)=>e.stopPropagation()}>
-            <div className="modal-header"><h3>Add Admin</h3></div>
+            <div className="modal-header"><h3>Add New Admin</h3></div>
             <div className="modal-body">
               <div className="form-grid">
                 <label>
