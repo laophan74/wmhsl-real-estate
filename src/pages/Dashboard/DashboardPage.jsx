@@ -561,14 +561,16 @@ export default function DashboardPage() {
             )}
             {active === "admins" && (
               <>
-                <button className="btn" onClick={fetchAdmins}><span className="icon">↻</span> Refresh</button>
-                <button className="btn" style={{ marginLeft: 8 }} onClick={openAddAdmin}>
+                <button className="btn" style={{ display:'inline-flex', alignItems:'center' }} onClick={fetchAdmins}>
+                  <span className="icon" style={{ display:'inline-flex', marginRight:4 }}>↻</span> Refresh
+                </button>
+                <button className="btn" style={{ marginLeft: 8, display:'inline-flex', alignItems:'center' }} onClick={openAddAdmin}>
                   <span className="icon" style={{ marginRight:4, display:'inline-flex' }}>
                     <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 5v14"/><path d="M5 12h14"/>
                     </svg>
                   </span>
-                  Add New Admin
+                  Add
                 </button>
               </>
             )}
