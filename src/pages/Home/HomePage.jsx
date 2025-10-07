@@ -31,6 +31,7 @@ export default function HomePage() {
   const [errors, setErrors] = React.useState({});
   const [prefetchedMessage, setPrefetchedMessage] = React.useState("");
   const [messageLoading, setMessageLoading] = React.useState(false);
+  const [messageDebug, setMessageDebug] = React.useState(null); // store debug info if public endpoint fails
   const DEFAULT_THANK_YOU = 'Thanks for the information!';
 
   const suburbOptions = [
@@ -136,12 +137,38 @@ export default function HomePage() {
         const res = await fetch(
           "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages/public-first"
         );
-        if (!res.ok) throw new Error('Failed to load thank-you message');
-        const data = await res.json();
-        const text = (data?.message || "").trim();
-        if (!cancelled && text) setPrefetchedMessage(text);
+        if (!res.ok) {
+          const status = res.status;
+          if (status === 401) {
+            // Fallback attempt: try limit=1 endpoint (may also 401)
+            try {
+              const fallback = await fetch("https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=1&offset=0");
+              if (fallback.ok) {
+                const json = await fallback.json();
+                const list = Array.isArray(json)
+                  ? json
+                  : Array.isArray(json?.value)
+                  ? json.value
+                  : [];
+                const first = list[0];
+                const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
+                if (!cancelled && text) setPrefetchedMessage(text);
+              } else {
+                if (!cancelled) setMessageDebug(`public-first 401; fallback status ${fallback.status}`);
+              }
+            } catch (err) {
+              if (!cancelled) setMessageDebug(`public-first 401; fallback fetch error: ${err.message}`);
+            }
+          } else {
+            if (!cancelled) setMessageDebug(`public-first status ${status}`);
+          }
+        } else {
+          const data = await res.json();
+          const text = (data?.message || "").trim();
+          if (!cancelled && text) setPrefetchedMessage(text);
+        }
       } catch (_) {
-        // ignore – fallback will be static message
+        if (!cancelled) setMessageDebug(`exception: ${e.message}`);
       } finally {
         if (!cancelled) setMessageLoading(false);
       }
@@ -329,10 +356,15 @@ export default function HomePage() {
                   </Box>
                 </>
               ) : (
-                <Box sx={{ minHeight: 120, display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ minHeight: 120, display: 'flex', alignItems: 'center', flexDirection: 'column', gap: 1 }}>
                   <Typography variant="h5" gutterBottom>
                     {submittedMessageText || prefetchedMessage || DEFAULT_THANK_YOU}
                   </Typography>
+                  {import.meta.env.VITE_SHOW_MESSAGE_DEBUG === '1' && messageDebug && (
+                    <Typography variant="caption" color="text.secondary" sx={{ opacity: 0.7 }}>
+                      debug: {messageDebug}
+                    </Typography>
+                  )}
                 </Box>
               )}
             </CardContent>
