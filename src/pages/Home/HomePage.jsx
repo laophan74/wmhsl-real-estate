@@ -27,7 +27,7 @@ export default function HomePage() {
   const [submitting, setSubmitting] = React.useState(false);
   const [statusMessage, setStatusMessage] = React.useState("");
   const [showSubmittedMessage, setShowSubmittedMessage] = React.useState(false);
-  // Removed dynamic submitted message fetching; we use static thank-you text.
+  const [submittedMessageText, setSubmittedMessageText] = React.useState("");
   const [errors, setErrors] = React.useState({});
 
   const suburbOptions = [
@@ -102,7 +102,7 @@ export default function HomePage() {
         throw new Error(`Server error ${res.status}: ${text}`);
       }
 
-      await res.json(); // Ignore body specifics; no success log shown.
+  await res.json(); // Ignore body specifics for now
 
       // reset form controls
       formEl.reset();
@@ -111,7 +111,27 @@ export default function HomePage() {
   setBuying("");
   setSuburbValue("");
 
-      // Show static thank-you view
+      // Fetch first message document for thank-you text
+      try {
+        const resMsg = await fetch(
+          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=100&offset=0"
+        );
+        if (resMsg.ok) {
+          const json = await resMsg.json();
+          const list = Array.isArray(json)
+            ? json
+            : Array.isArray(json?.value)
+            ? json.value
+            : [];
+          const first = list[0];
+          const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
+          setSubmittedMessageText(text || "Thank you for your interest in Stone Real Estate.");
+        } else {
+          setSubmittedMessageText("Thank you for your interest in Stone Real Estate.");
+        }
+      } catch (_) {
+        setSubmittedMessageText("Thank you for your interest in Stone Real Estate.");
+      }
       setShowSubmittedMessage(true);
     } catch (err) {
       console.error(err);
@@ -302,7 +322,7 @@ export default function HomePage() {
               ) : (
                 <Box sx={{ minHeight: 120, display: 'flex', alignItems: 'center' }}>
                   <Typography variant="h5" gutterBottom>
-                    Thank you for your interest in Stone Real Estate.
+                    {submittedMessageText || 'Thank you for your interest in Stone Real Estate.'}
                   </Typography>
                 </Box>
               )}
