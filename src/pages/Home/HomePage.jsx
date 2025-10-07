@@ -117,59 +117,35 @@ export default function HomePage() {
   setBuying("");
   setSuburbValue("");
 
-      // Immediately show a fallback thank-you so UI never blocks
-      setSubmittedMessageText("Thank you! We will get in touch soon.");
-      setShowSubmittedMessage(true);
-
-      // Attempt dynamic message retrieval with multiple endpoint fallbacks
-      (async () => {
-        const endpoints = [
-          // Hypothetical public endpoint (try first if backend added one)
-          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages/public?limit=1",
-          // Original protected endpoint
-          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=1&offset=0"
-        ];
-        for (const url of endpoints) {
-          try {
-            const controller = new AbortController();
-            const t = setTimeout(() => controller.abort(), 5000);
-            const resMsg = await fetch(url, {
-              signal: controller.signal,
-              // Include credentials in case a session cookie is present (user may be logged in already)
-              credentials: 'include'
-            });
-            clearTimeout(t);
-            if (!resMsg.ok) {
-              console.warn('Message endpoint failed', url, resMsg.status);
-              // If unauthorized, just try next endpoint
-              continue;
-            }
-            const json = await resMsg.json();
-            const list = Array.isArray(json)
-              ? json
-              : Array.isArray(json?.value)
-              ? json.value
-              : [];
-            if (!list.length) {
-              console.warn('Message endpoint returned empty list', url);
-              continue;
-            }
-            const first = list[0];
-            const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
-            if (text) {
-              setSubmittedMessageText(text);
-              break; // Stop after first successful message
-            }
-          } catch (errFetch) {
-            if (errFetch?.name === 'AbortError') {
-              console.warn('Message fetch aborted (timeout):', url);
-            } else {
-              console.warn('Message fetch error', url, errFetch.message);
-            }
-            // Continue to next endpoint
+      // Fetch message first (with fallbacks); only then show the submitted message screen.
+      let finalMsg = "";
+      const endpoints = [
+        "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages/public?limit=1",
+        "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=1&offset=0"
+      ];
+      for (const url of endpoints) {
+        try {
+          const controller = new AbortController();
+          const t = setTimeout(() => controller.abort(), 5000);
+          const resMsg = await fetch(url, { signal: controller.signal, credentials: 'include' });
+          clearTimeout(t);
+          if (!resMsg.ok) {
+            continue;
           }
-        }
-      })();
+          const json = await resMsg.json();
+          const list = Array.isArray(json) ? json : (Array.isArray(json?.value) ? json.value : []);
+            if (!list.length) continue;
+          const first = list[0];
+          const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
+          if (text) {
+            finalMsg = text;
+            break;
+          }
+        } catch(_) { /* try next */ }
+      }
+      if (!finalMsg) finalMsg = "Thank you! We will get in touch soon.";
+      setSubmittedMessageText(finalMsg);
+      setShowSubmittedMessage(true);
     } catch (err) {
       console.error(err);
       setStatusMessage(`Failed to submit form: ${err.message}`);
