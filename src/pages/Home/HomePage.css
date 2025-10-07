@@ -39,6 +39,7 @@
   flex:1 1 0;
   min-width:0;
   display:block;
+  min-height:100%;
 }
 
 /* right form column */
@@ -49,6 +50,9 @@
   justify-content:center;
   padding:0;
   min-width:0;
+  /* independent scroll */
+  overflow:auto;
+  -webkit-overflow-scrolling: touch;
 }
 @media (max-width: 900px) {
   .form-col { padding-bottom:32px !important; }
@@ -64,9 +68,9 @@
   display:flex;
   flex-direction:column;
   justify-content:flex-start;
-  height:100%;
+  flex:0 0 auto;
+  height:auto;
   min-height:0;
-  overflow:auto;
   padding-bottom:24px;
 }
 
@@ -92,7 +96,8 @@
 @media (max-width: 900px) {
   .home-grid { flex-direction:column; }
   .hero-image { height:180px; flex:0 0 auto; }
-  .lead-card { height:auto; max-height:none; overflow:visible; }
+  .form-col { overflow:visible; }
+  .lead-card { height:auto; max-height:none; }
 }
 
 @media (max-width: 600px) {
