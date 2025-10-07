@@ -95,6 +95,16 @@ export default function DashboardPage() {
   const [leadPage, setLeadPage] = useState(0); // 0-based
   const pageSize = 5;
   const [savingLead, setSavingLead] = useState(false);
+  const [toasts, setToasts] = useState([]);
+
+  const pushToast = (msg, opts={}) => {
+    const id = Date.now() + Math.random();
+    setToasts(t => [...t, { id, msg, type: opts.type || 'success' }]);
+    const ttl = opts.ttl || 3000;
+    setTimeout(() => {
+      setToasts(t => t.filter(x => x.id !== id));
+    }, ttl);
+  };
   // Message edit modal state
   const [editingMessage, setEditingMessage] = useState(null);
   const [messageForm, setMessageForm] = useState({ message: "", tags: "", edited_by: "" });
@@ -201,6 +211,7 @@ export default function DashboardPage() {
         return { ...x, contact: newContact, metadata: newMeta };
       }));
       closeEdit();
+      pushToast('Lead updated successfully');
     } catch (err) {
       alert(`Failed to update lead: ${err.message}`);
     } finally {
@@ -756,6 +767,14 @@ export default function DashboardPage() {
               <button className="btn gray" onClick={closeEditMessage}>Cancel</button>
             </div>
           </div>
+        </div>
+      )}
+      {/* Toasts */}
+      {toasts.length > 0 && (
+        <div className="toast-container">
+          {toasts.map(t => (
+            <div key={t.id} className="toast">{t.msg}</div>
+          ))}
         </div>
       )}
     </div>
