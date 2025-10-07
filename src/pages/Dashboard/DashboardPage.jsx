@@ -85,6 +85,10 @@ export default function DashboardPage() {
   const [adminsError, setAdminsError] = useState(null);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [messagesError, setMessagesError] = useState(null);
+  // Reusable suburb options (mirrors Home form)
+  const suburbOptions = [
+    "Darwin CBD","Fannie Bay","Larrakeyah","Nightcliff","Rapid Creek","Parap","Stuart Park","Bayview","The Gardens","Woolner","Ludmilla","Coconut Grove","Tiwi","Anula","Alawa","Brinkin","Jingili","Millner","Muirhead","Nakara","Wagaman","Marrara","Karama","Leanyer","Malak","Moil","Wulagi","Driver","Durack","Gray","Gunn","Johnston","Moulden","Palmerston City","Rosebery","Woodroffe","Zuccoli","Bellamack","Bakewell","Rosebery Heights","Farrar","Holtze","Howard Springs","Virginia","Coolalinga","Humpty Doo","Girraween","Lambells Lagoon","Bees Creek","Weddell"
+  ];
   // Leads table UX state
   const [leadSort, setLeadSort] = useState({ field: 'created', direction: 'desc' });
   const [leadQuery, setLeadQuery] = useState('');
@@ -410,7 +414,6 @@ export default function DashboardPage() {
   return (
     <div className="dashboard-root">
       <aside className="dashboard-sidebar">
-        <div className="brand">Stone Real Estate</div>
         <nav className="nav">
           {TABS.map((t) => (
             <button
@@ -491,8 +494,24 @@ export default function DashboardPage() {
                           <tr key={l.lead_id || l.id || `${idx}-${leadPage}`}>
                             <td>{c.first_name || ''}</td>
                             <td>{c.last_name || ''}</td>
-                            <td>{getLeadScore(l) ?? '-'}</td>
-                            <td>{getLeadCategory(l)}</td>
+                            <td>
+                              {(() => {
+                                const score = getLeadScore(l);
+                                const val = score ?? '-';
+                                const color = typeof score === 'number' ? (score > 80 ? '#059669' : '#dc2626') : '#374151';
+                                return <span style={{ fontWeight:500, color }}>{val}</span>;
+                              })()}
+                            </td>
+                            <td>
+                              {(() => {
+                                const cat = getLeadCategory(l) || '-';
+                                let color = '#374151';
+                                if (cat === 'WARM') color = '#059669';
+                                if (cat === 'COLD') color = '#dc2626';
+                                if (cat === 'HOT') color = '#d97706';
+                                return <span style={{ fontWeight:600, letterSpacing:0.5, color }}>{cat}</span>;
+                              })()}
+                            </td>
                             <td>{toYesNo(c.selling_interest ?? c.interested)}</td>
                             <td>{toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest)}</td>
                             <td>{c.suburb || ''}</td>
@@ -625,7 +644,12 @@ export default function DashboardPage() {
                 </label>
                 <label>
                   Suburb
-                  <input name="suburb" value={editForm.suburb} onChange={onEditChange} />
+                  <select name="suburb" value={editForm.suburb} onChange={onEditChange}>
+                    <option value="">Choose…</option>
+                    {suburbOptions.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
                 </label>
                 <label>
                   Timeframe
