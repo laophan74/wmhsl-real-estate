@@ -87,7 +87,7 @@ export default function DashboardPage() {
   const [messagesError, setMessagesError] = useState(null);
   // Reusable suburb options (mirrors Home form)
   const suburbOptions = [
-    "Darwin CBD","Fannie Bay","Larrakeyah","Nightcliff","Rapid Creek","Parap","Stuart Park","Bayview","The Gardens","Woolner","Ludmilla","Coconut Grove","Tiwi","Anula","Alawa","Brinkin","Jingili","Millner","Muirhead","Nakara","Wagaman","Marrara","Karama","Leanyer","Malak","Moil","Wulagi","Driver","Durack","Gray","Gunn","Johnston","Moulden","Palmerston City","Rosebery","Woodroffe","Zuccoli","Bellamack","Bakewell","Rosebery Heights","Farrar","Holtze","Howard Springs","Virginia","Coolalinga","Humpty Doo","Girraween","Lambells Lagoon","Bees Creek","Weddell"
+    'Hornsby', 'Asquith', 'Waitara', 'Hornsby Heights', 'Mount Colah', 'Mount Kuring-gai', 'Berowra', 'Berowra Heights', 'Wahroonga', 'Turramurra', 'Pennant Hills', 'Thornleigh', 'Normanhurst'
   ];
   // Leads table UX state
   const [leadSort, setLeadSort] = useState({ field: 'created', direction: 'desc' });
