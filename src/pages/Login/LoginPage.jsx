@@ -6,7 +6,7 @@ import { Box, Card, CardContent, TextField, Button, Typography, InputAdornment }
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -15,10 +15,10 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-    const res = await login(email.trim().toLowerCase(), password);
+  const res = await login(username, password);
     setLoading(false);
-  if (res.ok) navigate("/dashboard");
-  else setError(res.message || "Login failed. Please try again.");
+    if (res.ok) navigate("/dashboard");
+    else setError(res.message || "Login failed. Please try again.");
   };
 
   return (
@@ -35,9 +35,9 @@ export default function LoginPage() {
               fullWidth
               required
               margin="normal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              InputProps={{ startAdornment: <InputAdornment position="start">�</InputAdornment> }}
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              InputProps={{ startAdornment: <InputAdornment position="start">👤</InputAdornment> }}
             />
             <TextField
               label="Password"

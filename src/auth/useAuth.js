@@ -18,14 +18,21 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function login(email, password) {
+  async function login(username, password) {
     try {
-      const { data } = await api.post('/api/v1/auth/login', { email, password });
-      setUser(data.user);
+      const normUser = (username || '').trim().toLowerCase();
+      const { data } = await api.post('/api/v1/auth/login', { username: normUser, password }, { withCredentials: true });
+      // Hydrate via /me to ensure cookie session is valid and get canonical user object
+      try {
+        const me = await api.get('/api/v1/auth/me');
+        setUser(me.data.user);
+      } catch {
+        setUser(data.user || { username: normUser });
+      }
       return { ok: true };
     } catch (err) {
       const status = err?.response?.status;
-      if (status === 401) return { ok: false, message: 'Incorrect email or password.' };
+      if (status === 401) return { ok: false, message: 'Incorrect username or password.' };
       if (status === 400) return { ok: false, message: 'Invalid input.' };
       return { ok: false, message: 'Login failed. Please try again.' };
     }
