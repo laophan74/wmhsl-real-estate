@@ -61,11 +61,49 @@
   margin-bottom:12px;
 }
 
-.btn{background:var(--accent);color:#fff;border:0;padding:8px 12px;border-radius:6px;cursor:pointer}
-.btn.small{padding:4px 8px;font-size:12px}
-.btn.icon-only{display:inline-flex;align-items:center;justify-content:center;gap:4px}
-.btn.icon-only span.icon{margin-right:0}
-.btn .icon{margin-right:4px;font-size:14px;line-height:1}
+.header-actions{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.btn{
+  background:var(--accent);
+  color:#fff;
+  border:0;
+  padding:8px 12px;
+  border-radius:6px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  line-height:1;
+  font-size:14px;
+}
+
+.btn.small{
+  padding:4px 8px;
+  font-size:12px;
+}
+
+.btn.icon-only{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+}
+
+.btn.icon-only span.icon{
+  margin-right:0;
+}
+
+.btn .icon{
+  margin-right:4px;
+  font-size:14px;
+  line-height:1;
+  display:inline-flex;
+  align-items:center;
+}
 
 /* Modern compact square icon buttons */
 .icon-btn{background:#e2e8f0;border:1px solid #cbd5e1;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;padding:0;transition:background .18s,border-color .18s,transform .18s;line-height:0}
@@ -111,9 +149,25 @@
 @media (max-width:1000px){
   .leads-table th,.leads-table td{padding:8px 6px;font-size:13px}
 }
+@media (max-width:900px){
+  .dashboard-root{flex-direction:column;}
+  .dashboard-sidebar{width:100%;flex-direction:row;align-items:center;justify-content:space-between;padding:12px 12px;}
+  .nav{flex-direction:row;gap:4px;overflow-x:auto;}
+  .nav-item{padding:8px 10px;font-size:13px;white-space:nowrap}
+  .dashboard-main{padding:14px}
+  .dashboard-header{flex-direction:column;align-items:stretch;gap:10px}
+  .header-actions{justify-content:flex-start}
+}
 @media (max-width:780px){
   .leads-table th,.leads-table td{padding:6px 6px;font-size:12px}
   .btn.small{font-size:11px;padding:3px 6px}
+}
+@media (max-width:600px){
+  .btn{padding:7px 10px;font-size:13px}
+  .dashboard-main{padding:12px}
+  .dashboard-content{padding:12px}
+  .dashboard-sidebar{padding:10px 10px}
+  .dashboard-header h2{font-size:18px;margin:0}
 }
 @media (max-width:560px){
   .leads-table th,.leads-table td{padding:5px 4px;font-size:11.5px}
