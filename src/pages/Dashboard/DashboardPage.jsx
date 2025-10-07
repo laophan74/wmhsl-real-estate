@@ -109,6 +109,7 @@ export default function DashboardPage() {
     suburb: "",
     timeframe: "",
   });
+  const [editErrors, setEditErrors] = useState({});
 
   const openEdit = (lead) => {
     const c = lead?.contact || {};
@@ -121,6 +122,7 @@ export default function DashboardPage() {
       suburb: c.suburb || "",
       timeframe: c.timeframe || "",
     });
+    setEditErrors({});
   };
 
   const closeEdit = () => {
@@ -130,12 +132,52 @@ export default function DashboardPage() {
   const onEditChange = (e) => {
     const { name, value } = e.target;
     setEditForm((f) => ({ ...f, [name]: value }));
+    // live validate single field
+    setEditErrors(prev => {
+      const next = { ...prev };
+      const v = value;
+      const trim = (s)=> (s||'').trim();
+      const validators = {
+        first_name: () => !trim(v) ? 'First name required' : '',
+        last_name: () => '',
+        email: () => {
+          if(!trim(v)) return 'Email required';
+          return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trim(v)) ? '' : 'Invalid email';
+        },
+        phone: () => v && !/^[0-9+()\s-]{6,20}$/.test(v) ? 'Invalid phone' : '',
+        suburb: () => !v ? 'Suburb required' : '',
+        timeframe: () => '',
+      };
+      if (validators[name]) {
+        const msg = validators[name]();
+        if (msg) next[name] = msg; else delete next[name];
+      }
+      return next;
+    });
+  };
+
+  const validateEditForm = (data) => {
+    const errs = {};
+    const trim = (s)=> (s||'').trim();
+    if (!trim(data.first_name)) errs.first_name = 'First name required';
+    if (!trim(data.email)) errs.email = 'Email required';
+    else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trim(data.email))) errs.email = 'Invalid email';
+    if (data.phone && !/^[0-9+()\s-]{6,20}$/.test(data.phone)) errs.phone = 'Invalid phone';
+    if (!data.suburb) errs.suburb = 'Suburb required';
+    return errs;
   };
 
   const saveEdit = async () => {
     if (!editingLead) return;
     const leadId = editingLead.lead_id || editingLead.id;
     if (!leadId) return;
+
+    // validate
+    const errs = validateEditForm(editForm);
+    if (Object.keys(errs).length) {
+      setEditErrors(errs);
+      return;
+    }
 
     const contact = {
       first_name: editForm.first_name.trim(),
@@ -637,28 +679,33 @@ export default function DashboardPage() {
               <div className="form-grid">
                 <label>
                   First name
-                  <input name="first_name" value={editForm.first_name} onChange={onEditChange} />
+                  <input name="first_name" value={editForm.first_name} onChange={onEditChange} className={editErrors.first_name ? 'err' : ''} />
+                  {editErrors.first_name && <small className="field-error">{editErrors.first_name}</small>}
                 </label>
                 <label>
                   Last name
-                  <input name="last_name" value={editForm.last_name} onChange={onEditChange} />
+                  <input name="last_name" value={editForm.last_name} onChange={onEditChange} className={editErrors.last_name ? 'err' : ''} />
+                  {editErrors.last_name && <small className="field-error">{editErrors.last_name}</small>}
                 </label>
                 <label>
                   Email
-                  <input name="email" type="email" value={editForm.email} onChange={onEditChange} />
+                  <input name="email" type="email" value={editForm.email} onChange={onEditChange} className={editErrors.email ? 'err' : ''} />
+                  {editErrors.email && <small className="field-error">{editErrors.email}</small>}
                 </label>
                 <label>
                   Phone
-                  <input name="phone" value={editForm.phone} onChange={onEditChange} />
+                  <input name="phone" value={editForm.phone} onChange={onEditChange} className={editErrors.phone ? 'err' : ''} />
+                  {editErrors.phone && <small className="field-error">{editErrors.phone}</small>}
                 </label>
                 <label>
                   Suburb
-                  <select name="suburb" value={editForm.suburb} onChange={onEditChange}>
+                  <select name="suburb" value={editForm.suburb} onChange={onEditChange} className={editErrors.suburb ? 'err' : ''}>
                     <option value="">Choose…</option>
                     {suburbOptions.map(s => (
                       <option key={s} value={s}>{s}</option>
                     ))}
                   </select>
+                  {editErrors.suburb && <small className="field-error">{editErrors.suburb}</small>}
                 </label>
                 <label>
                   Timeframe
@@ -674,7 +721,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="modal-footer">
-              <button className="btn" onClick={saveEdit} disabled={savingLead}>
+              <button className="btn" onClick={saveEdit} disabled={savingLead || Object.keys(editErrors).length > 0}>
                 {savingLead ? 'Saving...' : 'Save'}
               </button>
               <button className="btn gray" onClick={closeEdit}>Cancel</button>
