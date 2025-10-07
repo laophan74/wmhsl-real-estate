@@ -31,6 +31,7 @@ export default function HomePage() {
   const [errors, setErrors] = React.useState({});
   const [prefetchedMessage, setPrefetchedMessage] = React.useState("");
   const [messageLoading, setMessageLoading] = React.useState(false);
+  const DEFAULT_THANK_YOU = 'Thanks for the information!';
 
   const suburbOptions = [
     "Hornsby",
@@ -115,7 +116,7 @@ export default function HomePage() {
 
       // Use prefetched message if available; otherwise fallback
       setSubmittedMessageText(
-        prefetchedMessage || "Thank you for your interest in Stone Real Estate."
+        (prefetchedMessage && prefetchedMessage.trim()) || DEFAULT_THANK_YOU
       );
       setShowSubmittedMessage(true);
     } catch (err) {
@@ -126,24 +127,18 @@ export default function HomePage() {
     }
   };
 
-  // Prefetch first message (limit=1). If endpoint requires auth and fails, we silently ignore.
+  // Prefetch first public thank-you message from new public-first endpoint.
   React.useEffect(() => {
     let cancelled = false;
     const loadFirstMessage = async () => {
       setMessageLoading(true);
       try {
         const res = await fetch(
-          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=1&offset=0"
+          "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages/public-first"
         );
-        if (!res.ok) throw new Error("failed");
-        const json = await res.json();
-        const list = Array.isArray(json)
-          ? json
-          : Array.isArray(json?.value)
-          ? json.value
-          : [];
-        const first = list[0];
-        const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
+        if (!res.ok) throw new Error('Failed to load thank-you message');
+        const data = await res.json();
+        const text = (data?.message || "").trim();
         if (!cancelled && text) setPrefetchedMessage(text);
       } catch (_) {
         // ignore – fallback will be static message
@@ -336,7 +331,7 @@ export default function HomePage() {
               ) : (
                 <Box sx={{ minHeight: 120, display: 'flex', alignItems: 'center' }}>
                   <Typography variant="h5" gutterBottom>
-                    {submittedMessageText || 'Thank you for your interest in Stone Real Estate.'}
+                    {submittedMessageText || prefetchedMessage || DEFAULT_THANK_YOU}
                   </Typography>
                 </Box>
               )}
