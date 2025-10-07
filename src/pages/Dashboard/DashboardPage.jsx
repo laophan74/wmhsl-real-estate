@@ -498,8 +498,12 @@ export default function DashboardPage() {
                               {(() => {
                                 const score = getLeadScore(l);
                                 const val = score ?? '-';
-                                const color = typeof score === 'number' ? (score > 80 ? '#059669' : '#dc2626') : '#374151';
-                                return <span style={{ fontWeight:500, color }}>{val}</span>;
+                                const cat = getLeadCategory(l);
+                                let color = '#374151';
+                                if (cat === 'HOT') color = '#d97706'; // amber
+                                else if (cat === 'WARM') color = '#059669'; // green
+                                else if (cat === 'COLD') color = '#dc2626'; // red
+                                return <span style={{ fontWeight:600, color }}>{val}</span>;
                               })()}
                             </td>
                             <td>
