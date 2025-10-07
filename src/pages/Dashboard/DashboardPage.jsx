@@ -149,14 +149,14 @@ export default function DashboardPage() {
       const trim = (s)=> (s||'').trim();
       const validators = {
         first_name: () => !trim(v) ? 'First name required' : '',
-        last_name: () => '',
+        last_name: () => !trim(v) ? 'Last name required' : '',
         email: () => {
           if(!trim(v)) return 'Email required';
           return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trim(v)) ? '' : 'Invalid email';
         },
         phone: () => v && !/^[0-9+()\s-]{6,20}$/.test(v) ? 'Invalid phone' : '',
         suburb: () => !v ? 'Suburb required' : '',
-        timeframe: () => '',
+        timeframe: () => !v ? 'Timeframe required' : '',
       };
       if (validators[name]) {
         const msg = validators[name]();
@@ -170,10 +170,12 @@ export default function DashboardPage() {
     const errs = {};
     const trim = (s)=> (s||'').trim();
     if (!trim(data.first_name)) errs.first_name = 'First name required';
+    if (!trim(data.last_name)) errs.last_name = 'Last name required';
     if (!trim(data.email)) errs.email = 'Email required';
     else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trim(data.email))) errs.email = 'Invalid email';
     if (data.phone && !/^[0-9+()\s-]{6,20}$/.test(data.phone)) errs.phone = 'Invalid phone';
     if (!data.suburb) errs.suburb = 'Suburb required';
+    if (!data.timeframe) errs.timeframe = 'Timeframe required';
     return errs;
   };
 
@@ -720,13 +722,14 @@ export default function DashboardPage() {
                 </label>
                 <label>
                   Timeframe
-                  <select name="timeframe" value={editForm.timeframe} onChange={onEditChange}>
+                  <select name="timeframe" value={editForm.timeframe} onChange={onEditChange} className={editErrors.timeframe ? 'err' : ''}>
                     <option value="">Choose…</option>
                     <option value="1-3 months">1-3 months</option>
                     <option value="3-6 months">3-6 months</option>
                     <option value="6+ months">6+ months</option>
                     <option value="not sure">Not sure</option>
                   </select>
+                  {editErrors.timeframe && <small className="field-error">{editErrors.timeframe}</small>}
                 </label>
                 {/* Only allow editing specified fields */}
               </div>
