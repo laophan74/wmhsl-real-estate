@@ -12,3 +12,10 @@ a {
   text-decoration: none;
   color: inherit;
 }
+
+/* Layout scaffolding to keep footer at bottom without overlap */
+.main-layout { min-height:100%; display:flex; flex-direction:column; }
+.main-content { flex:1 0 auto; display:block; }
+
+/* Ensure forms/cards on home page don't stretch beyond footer */
+.home-hero .lead-card { margin-bottom: 32px; }
