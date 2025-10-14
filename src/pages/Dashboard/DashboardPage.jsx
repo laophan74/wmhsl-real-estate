@@ -260,7 +260,11 @@ export default function DashboardPage() {
         const idX = x.lead_id || x.id;
         if (idX !== leadId) return x;
         const newContact = updated?.contact || { ...x.contact, ...contact };
-        const newMeta = updated?.metadata || x.metadata;
+        const newMeta = { 
+          ...(updated?.metadata || x.metadata), 
+          // Use updated_at from server response, or set current time if not provided
+          updated_at: updated?.metadata?.updated_at || new Date().toISOString()
+        };
         const newStatus = updated?.status || editForm.status;
         return { ...x, contact: newContact, metadata: newMeta, status: newStatus };
       }));
