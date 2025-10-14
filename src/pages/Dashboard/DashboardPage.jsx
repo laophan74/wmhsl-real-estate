@@ -128,6 +128,7 @@ export default function DashboardPage() {
     phone: "",
     suburb: "",
     timeframe: "",
+    status: "",
   });
   const [editErrors, setEditErrors] = useState({});
 
@@ -141,6 +142,7 @@ export default function DashboardPage() {
       phone: c.phone || "",
       suburb: c.suburb || "",
       timeframe: c.timeframe || "",
+      status: lead.status || lead.metadata?.status || "",
     });
     setEditErrors({});
   };
@@ -167,6 +169,7 @@ export default function DashboardPage() {
         phone: () => v && !/^[0-9+()\s-]{6,20}$/.test(v) ? 'Invalid phone' : '',
         suburb: () => !v ? 'Suburb required' : '',
         timeframe: () => !v ? 'Timeframe required' : '',
+        status: () => !v ? 'Status required' : '',
       };
       if (validators[name]) {
         const msg = validators[name]();
@@ -186,6 +189,7 @@ export default function DashboardPage() {
     if (data.phone && !/^[0-9+()\s-]{6,20}$/.test(data.phone)) errs.phone = 'Invalid phone';
     if (!data.suburb) errs.suburb = 'Suburb required';
     if (!data.timeframe) errs.timeframe = 'Timeframe required';
+    if (!data.status) errs.status = 'Status required';
     return errs;
   };
 
@@ -209,8 +213,11 @@ export default function DashboardPage() {
       suburb: editForm.suburb,
       timeframe: editForm.timeframe,
     };
-    // Build body: only contact fields per requirement
-    const body = { contact };
+    // Build body: contact fields and status
+    const body = { 
+      contact,
+      status: editForm.status
+    };
 
     try {
       setSavingLead(true);
@@ -220,7 +227,8 @@ export default function DashboardPage() {
         if (idX !== leadId) return x;
         const newContact = updated?.contact || { ...x.contact, ...contact };
         const newMeta = updated?.metadata || x.metadata;
-        return { ...x, contact: newContact, metadata: newMeta };
+        const newStatus = updated?.status || editForm.status;
+        return { ...x, contact: newContact, metadata: newMeta, status: newStatus };
       }));
       closeEdit();
       pushToast('Lead updated successfully');
@@ -256,7 +264,8 @@ export default function DashboardPage() {
         'First Name': c.first_name || '',
         'Last Name': c.last_name || '',
         'Score': getLeadScore(l) ?? '',
-        'Status': getLeadCategory(l) || '',
+        'Category': getLeadCategory(l) || '',
+        'Status': l.status || l.metadata?.status || '',
         'Selling': toYesNo(c.selling_interest ?? c.interested),
         'Buying': toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest),
         'Suburb': c.suburb || '',
@@ -302,7 +311,7 @@ export default function DashboardPage() {
       const q = leadQuery.trim().toLowerCase();
       arr = arr.filter(l => {
         const c = l.contact || {};
-  const hay = [c.first_name, c.last_name, c.email, c.phone, c.suburb, c.timeframe, getLeadCategory(l)]
+        const hay = [c.first_name, c.last_name, c.email, c.phone, c.suburb, c.timeframe, getLeadCategory(l), l.status, l.metadata?.status]
           .filter(Boolean)
           .map(String)
           .join(' ') // join all fields
@@ -320,7 +329,8 @@ export default function DashboardPage() {
         case 'first_name': vA=cA.first_name||''; vB=cB.first_name||''; break;
         case 'last_name': vA=cA.last_name||''; vB=cB.last_name||''; break;
         case 'score': vA=getLeadScore(a)||0; vB=getLeadScore(b)||0; break;
-        case 'status': vA=getLeadCategory(a)||''; vB=getLeadCategory(b)||''; break;
+        case 'category': vA=getLeadCategory(a)||''; vB=getLeadCategory(b)||''; break;
+        case 'status': vA=a.status||a.metadata?.status||''; vB=b.status||b.metadata?.status||''; break;
         case 'selling': vA=toYesNo(cA.selling_interest ?? cA.interested); vB=toYesNo(cB.selling_interest ?? cB.interested); break;
         case 'buying': vA=toYesNo(cA.buying_interest ?? a.metadata?.custom_fields?.buying_interest); vB=toYesNo(cB.buying_interest ?? b.metadata?.custom_fields?.buying_interest); break;
         case 'suburb': vA=cA.suburb||''; vB=cB.suburb||''; break;
@@ -661,6 +671,7 @@ export default function DashboardPage() {
                         <th onClick={()=>toggleSort('first_name')} className="sortable">First Name {leadSort.field==='first_name' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('last_name')} className="sortable">Last Name {leadSort.field==='last_name' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('score')} className="sortable">Score {leadSort.field==='score' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('category')} className="sortable">Category {leadSort.field==='category' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('status')} className="sortable">Status {leadSort.field==='status' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('selling')} className="sortable">Selling {leadSort.field==='selling' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('buying')} className="sortable">Buying {leadSort.field==='buying' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
@@ -701,6 +712,12 @@ export default function DashboardPage() {
                                 else if (cat === 'WARM') color = '#d97706';
                                 else if (cat === 'COLD') color = '#dc2626';
                                 return <span style={{ fontWeight:600, letterSpacing:0.5, color }}>{cat}</span>;
+                              })()}
+                            </td>
+                            <td>
+                              {(() => {
+                                const status = l.status || l.metadata?.status || '-';
+                                return <span style={{ fontWeight:500, textTransform: 'capitalize' }}>{status}</span>;
                               })()}
                             </td>
                             <td>{toYesNo(c.selling_interest ?? c.interested)}</td>
@@ -918,6 +935,20 @@ export default function DashboardPage() {
                     <option value="not sure">Not sure</option>
                   </select>
                   {editErrors.timeframe && <small className="field-error">{editErrors.timeframe}</small>}
+                </label>
+                <label>
+                  Status
+                  <select name="status" value={editForm.status} onChange={onEditChange} className={editErrors.status ? 'err' : ''}>
+                    <option value="">Choose…</option>
+                    <option value="new">New</option>
+                    <option value="contacted">Contacted</option>
+                    <option value="qualified">Qualified</option>
+                    <option value="proposal">Proposal</option>
+                    <option value="negotiation">Negotiation</option>
+                    <option value="closed">Closed</option>
+                    <option value="lost">Lost</option>
+                  </select>
+                  {editErrors.status && <small className="field-error">{editErrors.status}</small>}
                 </label>
                 {/* Only allow editing specified fields */}
               </div>
