@@ -348,6 +348,8 @@ export default function DashboardPage() {
   };
 
   const filteredSortedLeads = useMemo(() => {
+    console.log("=== useMemo triggered with leadSort:", leadSort);
+    console.log("=== leads length:", leads.length);
     let arr = [...leads];
     if (leadQuery.trim()) {
       const q = leadQuery.trim().toLowerCase();
@@ -412,6 +414,10 @@ export default function DashboardPage() {
       if (vA < vB) return -1 * dir;
       if (vA > vB) return 1 * dir;
       return 0;
+    });
+    console.log("=== useMemo returning sorted array, first 3 items updated_at:");
+    arr.slice(0, 3).forEach((lead, index) => {
+      console.log(`Lead ${index}:`, lead.metadata?.updated_at?._seconds, lead.id);
     });
     return arr;
   }, [leads, leadQuery, leadSort]);
