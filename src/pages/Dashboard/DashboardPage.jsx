@@ -51,10 +51,16 @@ function getLeadScore(lead) {
 // Safely extract status string from lead object
 function getLeadStatus(lead) {
   const status = lead?.status ?? lead?.metadata?.status ?? '';
-  // Ensure we return a string, not an object
+  
+  // If status is an object with 'current' field, extract that
   if (typeof status === 'object' && status !== null) {
+    if (status.current) {
+      return String(status.current);
+    }
+    // Fallback to JSON string if no current field
     return JSON.stringify(status);
   }
+  
   return String(status || '');
 }
 
@@ -144,6 +150,16 @@ export default function DashboardPage() {
 
   const openEdit = (lead) => {
     const c = lead?.contact || {};
+    
+    // Extract current status for editing
+    const statusObj = lead?.status ?? lead?.metadata?.status ?? '';
+    let currentStatus = '';
+    if (typeof statusObj === 'object' && statusObj !== null && statusObj.current) {
+      currentStatus = statusObj.current;
+    } else if (typeof statusObj === 'string') {
+      currentStatus = statusObj;
+    }
+    
     setEditingLead(lead);
     setEditForm({
       first_name: c.first_name || "",
@@ -152,7 +168,7 @@ export default function DashboardPage() {
       phone: c.phone || "",
       suburb: c.suburb || "",
       timeframe: c.timeframe || "",
-      status: getLeadStatus(lead),
+      status: currentStatus,
     });
     setEditErrors({});
   };
