@@ -11,14 +11,20 @@ export function AuthProvider({ children }) {
     try {
       // Only try to refresh if we have a token
       const token = localStorage.getItem('authToken');
+      console.log('RefreshMe - Token found:', !!token);
+      
       if (!token) {
+        console.log('RefreshMe - No token, setting user to null');
         setUser(null);
         return;
       }
       
+      console.log('RefreshMe - Calling /api/v1/auth/me');
       const { data } = await api.get('/api/v1/auth/me');
+      console.log('RefreshMe - Success, user:', data.user);
       setUser(data.user);
-    } catch {
+    } catch (error) {
+      console.log('RefreshMe - Error:', error.response?.status, error.message);
       // Clear invalid token
       localStorage.removeItem('authToken');
       setUser(null);
@@ -30,17 +36,24 @@ export function AuthProvider({ children }) {
   async function login(username, password) {
     try {
       const normUser = (username || '').trim().toLowerCase();
+      console.log('Login - Attempting login for:', normUser);
       const { data } = await api.post('/api/v1/auth/login', { username: normUser, password });
+      
+      console.log('Login - Response data:', data);
       
       // Store the JWT token
       if (data.token) {
         localStorage.setItem('authToken', data.token);
+        console.log('Login - Token stored in localStorage');
+      } else {
+        console.warn('Login - No token in response!');
       }
       
       // Set user from login response
       setUser(data.user);
       return { ok: true };
     } catch (err) {
+      console.log('Login - Error:', err.response?.status, err.message);
       const status = err?.response?.status;
       if (status === 401) return { ok: false, message: 'Incorrect username or password.' };
       if (status === 400) return { ok: false, message: 'Invalid input.' };
