@@ -111,7 +111,7 @@ export default function DashboardPage() {
     'Hornsby', 'Asquith', 'Waitara', 'Hornsby Heights', 'Mount Colah', 'Mount Kuring-gai', 'Berowra', 'Berowra Heights', 'Wahroonga', 'Turramurra', 'Pennant Hills', 'Thornleigh', 'Normanhurst'
   ];
   // Leads table UX state
-  const [leadSort, setLeadSort] = useState({ field: 'created', direction: 'desc' });
+  const [leadSort, setLeadSort] = useState({ field: 'updated', direction: 'desc' });
   const [leadQuery, setLeadQuery] = useState('');
   const [leadPage, setLeadPage] = useState(0); // 0-based
   const pageSize = 5;
@@ -307,7 +307,7 @@ export default function DashboardPage() {
   // Preferred Contact removed
         'Email': c.email || '',
         'Phone': c.phone || '',
-        'Created': formatDate(l.metadata?.created_at) || ''
+        'Updated': formatDate(l.metadata?.updated_at) || ''
       };
     });
     const ws = XLSX.utils.json_to_sheet(data);
@@ -372,7 +372,7 @@ export default function DashboardPage() {
   // preferred_contact sorting removed
         case 'email': vA=cA.email||''; vB=cB.email||''; break;
         case 'phone': vA=cA.phone||''; vB=cB.phone||''; break;
-        case 'created': vA=a.metadata?.created_at||''; vB=b.metadata?.created_at||''; break;
+        case 'updated': vA=a.metadata?.updated_at||''; vB=b.metadata?.updated_at||''; break;
         default: vA=''; vB='';
       }
       if (vA < vB) return -1 * dir;
@@ -714,7 +714,7 @@ export default function DashboardPage() {
                         {/* Preferred Contact column removed */}
                         <th onClick={()=>toggleSort('email')} className="sortable">Email {leadSort.field==='email' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th onClick={()=>toggleSort('phone')} className="sortable">Phone {leadSort.field==='phone' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
-                        <th onClick={()=>toggleSort('created')} className="sortable">Created {leadSort.field==='created' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
+                        <th onClick={()=>toggleSort('updated')} className="sortable">Updated {leadSort.field==='updated' ? (leadSort.direction==='asc'?'▲':'▼') : ''}</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -761,7 +761,7 @@ export default function DashboardPage() {
                             {/* Preferred Contact cell removed */}
                             <td>{c.email || ''}</td>
                             <td>{c.phone || ''}</td>
-                            <td>{formatDate(l.metadata?.created_at) || '-'}</td>
+                            <td>{formatDate(l.metadata?.updated_at) || '-'}</td>
                             <td>
                               <div className="row-actions">
                                 <button className="icon-btn" aria-label="Edit" title="Edit" onClick={() => openEdit(l)}>
