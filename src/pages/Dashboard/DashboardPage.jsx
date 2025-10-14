@@ -415,7 +415,15 @@ export default function DashboardPage() {
           }
           
           console.log("=== Final comparison values:", { vA, vB, dir });
-          break;
+          
+          // Do comparison right here for updated case
+          let result;
+          if (vA < vB) result = -1 * dir;
+          else if (vA > vB) result = 1 * dir;
+          else result = 0;
+          
+          console.log(`=== Comparison: ${vA} vs ${vB}, dir: ${dir}, result: ${result}`);
+          return result;
         }
         default: vA=''; vB='';
       }
