@@ -48,6 +48,16 @@ function getLeadScore(lead) {
   return typeof num === "number" && !isNaN(num) ? num : undefined;
 }
 
+// Safely extract status string from lead object
+function getLeadStatus(lead) {
+  const status = lead?.status ?? lead?.metadata?.status ?? '';
+  // Ensure we return a string, not an object
+  if (typeof status === 'object' && status !== null) {
+    return JSON.stringify(status);
+  }
+  return String(status || '');
+}
+
 // Map score to category: >=75 -> HOT, >=50 -> WARM, else (<50) -> COLD; fallback to any textual category
 function getLeadCategory(lead) {
   const score = getLeadScore(lead);
@@ -142,7 +152,7 @@ export default function DashboardPage() {
       phone: c.phone || "",
       suburb: c.suburb || "",
       timeframe: c.timeframe || "",
-      status: lead.status || lead.metadata?.status || "",
+      status: getLeadStatus(lead),
     });
     setEditErrors({});
   };
@@ -265,7 +275,7 @@ export default function DashboardPage() {
         'Last Name': c.last_name || '',
         'Score': getLeadScore(l) ?? '',
         'Category': getLeadCategory(l) || '',
-        'Status': l.status || l.metadata?.status || '',
+        'Status': getLeadStatus(l),
         'Selling': toYesNo(c.selling_interest ?? c.interested),
         'Buying': toYesNo(c.buying_interest ?? l.metadata?.custom_fields?.buying_interest),
         'Suburb': c.suburb || '',
@@ -311,7 +321,7 @@ export default function DashboardPage() {
       const q = leadQuery.trim().toLowerCase();
       arr = arr.filter(l => {
         const c = l.contact || {};
-        const hay = [c.first_name, c.last_name, c.email, c.phone, c.suburb, c.timeframe, getLeadCategory(l), l.status, l.metadata?.status]
+        const hay = [c.first_name, c.last_name, c.email, c.phone, c.suburb, c.timeframe, getLeadCategory(l), getLeadStatus(l)]
           .filter(Boolean)
           .map(String)
           .join(' ') // join all fields
@@ -330,7 +340,7 @@ export default function DashboardPage() {
         case 'last_name': vA=cA.last_name||''; vB=cB.last_name||''; break;
         case 'score': vA=getLeadScore(a)||0; vB=getLeadScore(b)||0; break;
         case 'category': vA=getLeadCategory(a)||''; vB=getLeadCategory(b)||''; break;
-        case 'status': vA=a.status||a.metadata?.status||''; vB=b.status||b.metadata?.status||''; break;
+        case 'status': vA=getLeadStatus(a); vB=getLeadStatus(b); break;
         case 'selling': vA=toYesNo(cA.selling_interest ?? cA.interested); vB=toYesNo(cB.selling_interest ?? cB.interested); break;
         case 'buying': vA=toYesNo(cA.buying_interest ?? a.metadata?.custom_fields?.buying_interest); vB=toYesNo(cB.buying_interest ?? b.metadata?.custom_fields?.buying_interest); break;
         case 'suburb': vA=cA.suburb||''; vB=cB.suburb||''; break;
@@ -716,8 +726,8 @@ export default function DashboardPage() {
                             </td>
                             <td>
                               {(() => {
-                                const status = l.status || l.metadata?.status || '-';
-                                return <span style={{ fontWeight:500, textTransform: 'capitalize' }}>{status}</span>;
+                                const statusStr = getLeadStatus(l) || '-';
+                                return <span style={{ fontWeight:500, textTransform: 'capitalize' }}>{statusStr}</span>;
                               })()}
                             </td>
                             <td>{toYesNo(c.selling_interest ?? c.interested)}</td>
