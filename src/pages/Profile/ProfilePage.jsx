@@ -76,14 +76,26 @@ export default function ProfilePage() {
       setToast({ open: true, type: 'success', message: 'Password changed successfully!' });
       
     } catch (err) {
+      console.error('Change password error:', err);
+      console.error('Error response:', err?.response);
+      console.error('Error data:', err?.response?.data);
+      
       const errorMessage = err?.response?.data?.message || err?.message || 'Failed to change password';
       const errorCode = err?.response?.data?.error;
+      const status = err?.response?.status;
       
       // Handle specific error codes
       if (errorCode === 'INVALID_CURRENT_PASSWORD') {
         setPasswordErrors({ currentPassword: 'Current password is incorrect' });
       } else if (errorCode === 'NEW_PASSWORD_SAME_AS_CURRENT') {
         setPasswordErrors({ newPassword: 'New password must be different from current password' });
+      } else if (status === 500) {
+        // Server error - likely backend issue
+        setToast({ 
+          open: true, 
+          type: 'error', 
+          message: 'Server error occurred. Please contact administrator. Error: ' + errorMessage 
+        });
       } else {
         setToast({ open: true, type: 'error', message: errorMessage });
       }
