@@ -190,5 +190,8 @@ body, .dashboard-root, .dashboard-main{overflow-x:hidden;}
 /* Toast */
 .toast-container{position:fixed;top:16px;right:16px;display:flex;flex-direction:column;gap:10px;z-index:1100}
 .toast{background:#059669;color:#fff;padding:10px 14px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);font-size:14px;animation:fadeIn .25s ease}
+.toast.error{background:#dc2626}
+.toast.warning{background:#d97706}
+.toast.info{background:#2563eb}
 @keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 @media (max-width:640px){.form-grid{grid-template-columns:1fr}}

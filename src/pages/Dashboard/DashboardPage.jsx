@@ -390,11 +390,25 @@ export default function DashboardPage() {
   function validateAdminField(name, value, current) {
     const val = (value||'').trim();
     switch(name){
-      case 'username': return !val ? 'Username required' : (/^[a-z0-9._-]{3,30}$/i.test(val) ? '' : '3-30 chars, letters/numbers/._-');
+      case 'username': {
+        if (!val) return 'Username required';
+        if (!/^[a-z0-9._-]{3,30}$/i.test(val)) return '3-30 chars, letters/numbers/._-';
+        // Check for duplicate username
+        const existingUsername = admins.find(a => a.username?.toLowerCase() === val.toLowerCase());
+        if (existingUsername) return 'Username is already used!';
+        return '';
+      }
       case 'password': return !val ? 'Password required' : (val.length < 6 ? 'Min 6 chars' : '');
       case 'first_name': return !val ? 'First name required' : '';
       case 'last_name': return !val ? 'Last name required' : '';
-      case 'email': return !val ? 'Email required' : (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val) ? '' : 'Invalid email');
+      case 'email': {
+        if (!val) return 'Email required';
+        if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(val)) return 'Invalid email';
+        // Check for duplicate email
+        const existingEmail = admins.find(a => a.email?.toLowerCase() === val.toLowerCase());
+        if (existingEmail) return 'Email is already used!';
+        return '';
+      }
       default: return '';
     }
   }
@@ -423,8 +437,42 @@ export default function DashboardPage() {
       setAddingAdmin(false);
       pushToast('Admin created');
     } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || 'Failed to create admin';
-      alert(msg);
+      console.error('Save admin error:', err);
+      console.error('Error response:', err?.response?.data);
+      
+      const status = err?.response?.status;
+      const errorCode = err?.response?.data?.error;
+      const errorMessage = err?.response?.data?.message || err?.message || 'Failed to create admin';
+      
+      // Handle specific error cases for duplicate admin
+      if (status === 409 || status === 400) {
+        // Check for common duplicate error messages
+        const lowerMsg = errorMessage.toLowerCase();
+        if (lowerMsg.includes('already exists') || 
+            lowerMsg.includes('already used') || 
+            lowerMsg.includes('duplicate') ||
+            lowerMsg.includes('unique constraint') ||
+            errorCode === 'ADMIN_EXISTS' ||
+            errorCode === 'DUPLICATE_ADMIN' ||
+            errorCode === 'USERNAME_EXISTS' ||
+            errorCode === 'EMAIL_EXISTS') {
+          
+          // Set field-specific errors if possible
+          if (lowerMsg.includes('username') || errorCode === 'USERNAME_EXISTS') {
+            setAdminErrors({ username: 'Username is already used!' });
+          } else if (lowerMsg.includes('email') || errorCode === 'EMAIL_EXISTS') {
+            setAdminErrors({ email: 'Email is already used!' });
+          } else {
+            // General duplicate error
+            pushToast('Information is already used!', { type: 'error' });
+          }
+        } else {
+          pushToast(errorMessage, { type: 'error' });
+        }
+      } else {
+        // Other errors (500, network, etc.)
+        pushToast(errorMessage, { type: 'error' });
+      }
     } finally {
       setSavingAdmin(false);
     }
@@ -948,7 +996,7 @@ export default function DashboardPage() {
       {toasts.length > 0 && (
         <div className="toast-container">
           {toasts.map(t => (
-            <div key={t.id} className="toast">{t.msg}</div>
+            <div key={t.id} className={`toast ${t.type || 'success'}`}>{t.msg}</div>
           ))}
         </div>
       )}
