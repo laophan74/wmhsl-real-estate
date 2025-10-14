@@ -324,15 +324,11 @@ export default function DashboardPage() {
   };
 
   const toggleSort = (field) => {
-    console.log('toggleSort called with field:', field);
     setLeadSort(s => {
-      console.log('Current leadSort:', s);
       if (s.field === field) {
         const nextDir = s.direction === 'asc' ? 'desc' : 'asc';
-        console.log('Toggling direction to:', nextDir);
         return { field, direction: nextDir };
       }
-      console.log('Setting new field:', field, 'direction: asc');
       return { field, direction: 'asc' };
     });
   };
@@ -348,8 +344,6 @@ export default function DashboardPage() {
   };
 
   const filteredSortedLeads = useMemo(() => {
-    console.log("=== useMemo triggered with leadSort:", leadSort);
-    console.log("=== leads length:", leads.length);
     let arr = [...leads];
     if (leadQuery.trim()) {
       const q = leadQuery.trim().toLowerCase();
@@ -364,16 +358,7 @@ export default function DashboardPage() {
       });
     }
     const { field, direction } = leadSort;
-    console.log('Sorting with:', { field, direction });
     const dir = direction === 'asc' ? 1 : -1;
-    
-    if (field === 'updated') {
-      console.log("=== Before sorting, first 3 timestamps:");
-      arr.slice(0, 3).forEach((lead, index) => {
-        console.log(`Pre-sort ${index}:`, lead.metadata?.updated_at?._seconds, lead.id);
-      });
-    }
-    
     arr.sort((a,b) => {
       const cA = a.contact || {};
       const cB = b.contact || {};
@@ -414,33 +399,16 @@ export default function DashboardPage() {
             vB = 0;
           }
           
-          console.log("=== Final comparison values:", { vA, vB, dir });
-          
           // Do comparison right here for updated case
-          let result;
-          if (vA < vB) result = -1 * dir;
-          else if (vA > vB) result = 1 * dir;
-          else result = 0;
-          
-          console.log(`=== Comparison: ${vA} vs ${vB}, dir: ${dir}, result: ${result}`);
-          return result;
+          if (vA < vB) return -1 * dir;
+          if (vA > vB) return 1 * dir;
+          return 0;
         }
         default: vA=''; vB='';
       }
-      let result;
-      if (vA < vB) result = -1 * dir;
-      else if (vA > vB) result = 1 * dir;
-      else result = 0;
-      
-      if (field === 'updated') {
-        console.log(`=== Comparison: ${vA} vs ${vB}, dir: ${dir}, result: ${result}`);
-      }
-      
-      return result;
-    });
-    console.log("=== useMemo returning sorted array, first 3 items updated_at:");
-    arr.slice(0, 3).forEach((lead, index) => {
-      console.log(`Lead ${index}:`, lead.metadata?.updated_at?._seconds, lead.id);
+      if (vA < vB) return -1 * dir;
+      if (vA > vB) return 1 * dir;
+      return 0;
     });
     return arr;
   }, [leads, leadQuery, leadSort]);
