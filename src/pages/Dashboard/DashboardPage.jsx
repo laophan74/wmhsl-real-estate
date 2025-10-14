@@ -324,11 +324,15 @@ export default function DashboardPage() {
   };
 
   const toggleSort = (field) => {
+    console.log('toggleSort called with field:', field);
     setLeadSort(s => {
+      console.log('Current leadSort:', s);
       if (s.field === field) {
         const nextDir = s.direction === 'asc' ? 'desc' : 'asc';
+        console.log('Toggling direction to:', nextDir);
         return { field, direction: nextDir };
       }
+      console.log('Setting new field:', field, 'direction: asc');
       return { field, direction: 'asc' };
     });
   };
@@ -358,6 +362,7 @@ export default function DashboardPage() {
       });
     }
     const { field, direction } = leadSort;
+    console.log('Sorting with:', { field, direction });
     const dir = direction === 'asc' ? 1 : -1;
     arr.sort((a,b) => {
       const cA = a.contact || {};
