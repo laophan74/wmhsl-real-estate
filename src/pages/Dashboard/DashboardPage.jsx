@@ -376,7 +376,14 @@ export default function DashboardPage() {
   // preferred_contact sorting removed
         case 'email': vA=cA.email||''; vB=cB.email||''; break;
         case 'phone': vA=cA.phone||''; vB=cB.phone||''; break;
-        case 'updated': vA=a.metadata?.updated_at||''; vB=b.metadata?.updated_at||''; break;
+        case 'updated': {
+          // Convert to Date objects for accurate comparison
+          const dateA = a.metadata?.updated_at;
+          const dateB = b.metadata?.updated_at;
+          vA = dateA ? new Date(dateA).getTime() : 0;
+          vB = dateB ? new Date(dateB).getTime() : 0;
+          break;
+        }
         default: vA=''; vB='';
       }
       if (vA < vB) return -1 * dir;
