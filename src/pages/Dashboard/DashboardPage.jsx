@@ -366,6 +366,14 @@ export default function DashboardPage() {
     const { field, direction } = leadSort;
     console.log('Sorting with:', { field, direction });
     const dir = direction === 'asc' ? 1 : -1;
+    
+    if (field === 'updated') {
+      console.log("=== Before sorting, first 3 timestamps:");
+      arr.slice(0, 3).forEach((lead, index) => {
+        console.log(`Pre-sort ${index}:`, lead.metadata?.updated_at?._seconds, lead.id);
+      });
+    }
+    
     arr.sort((a,b) => {
       const cA = a.contact || {};
       const cB = b.contact || {};
@@ -411,9 +419,16 @@ export default function DashboardPage() {
         }
         default: vA=''; vB='';
       }
-      if (vA < vB) return -1 * dir;
-      if (vA > vB) return 1 * dir;
-      return 0;
+      let result;
+      if (vA < vB) result = -1 * dir;
+      else if (vA > vB) result = 1 * dir;
+      else result = 0;
+      
+      if (field === 'updated') {
+        console.log(`=== Comparison: ${vA} vs ${vB}, dir: ${dir}, result: ${result}`);
+      }
+      
+      return result;
     });
     console.log("=== useMemo returning sorted array, first 3 items updated_at:");
     arr.slice(0, 3).forEach((lead, index) => {
