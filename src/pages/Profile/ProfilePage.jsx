@@ -16,6 +16,9 @@ export default function ProfilePage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [toast, setToast] = useState({ open: false, type: 'success', message: '' });
 
+  // Debug user data
+  console.log('ProfilePage - User data:', user);
+
   if (!user) {
     return (
       <Box sx={{ p: 4 }}>
@@ -114,13 +117,57 @@ export default function ProfilePage() {
     }
   };
 
+  // Helper function to format date
+  const formatDate = (dateValue) => {
+    if (!dateValue) return "-";
+    try {
+      // Handle different date formats
+      let date;
+      if (typeof dateValue === 'string' || typeof dateValue === 'number') {
+        date = new Date(dateValue);
+      } else if (typeof dateValue === 'object') {
+        // Handle Firestore Timestamp-like objects
+        if (dateValue._seconds || dateValue.seconds) {
+          const seconds = dateValue._seconds || dateValue.seconds;
+          const nanoseconds = dateValue._nanoseconds || dateValue.nanoseconds || 0;
+          date = new Date(seconds * 1000 + Math.floor(nanoseconds / 1e6));
+        } else {
+          date = new Date(dateValue);
+        }
+      }
+      
+      if (date && !isNaN(date.getTime())) {
+        return date.toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
+        });
+      }
+    } catch (error) {
+      console.error('Date formatting error:', error);
+    }
+    return "-";
+  };
+
+  // Helper function to format name
+  const formatName = () => {
+    // Try different name field combinations
+    if (user.name) return user.name;
+    
+    const firstName = user.first_name || user.firstName || "";
+    const lastName = user.last_name || user.lastName || "";
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    return fullName || "-";
+  };
+
   const rows = [
-    { label: "ID", value: user.id || user.user_id || "-" },
+    { label: "ID", value: user.id || user.user_id || user.admin_id || "-" },
     { label: "Email", value: user.email || "-" },
     { label: "Username", value: user.username || "-" },
-    { label: "Name", value: user.name || `${user.first_name || ""} ${user.last_name || ""}`.trim() || "-" },
-    { label: "Role", value: user.role || user.metadata?.role || "-" },
-    { label: "Created", value: user.metadata?.created_at || user.created_at || "-" },
+    { label: "Name", value: formatName() },
+    { label: "Role", value: user.role || user.metadata?.role || "admin" },
+    { label: "Created", value: formatDate(user.metadata?.created_at || user.created_at || user.createdAt) },
   ];
 
   return (
