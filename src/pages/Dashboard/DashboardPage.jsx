@@ -239,10 +239,18 @@ export default function DashboardPage() {
       suburb: editForm.suburb,
       timeframe: editForm.timeframe,
     };
-    // Build body: contact fields and status
+    
+    // Build status object according to backend requirements
+    const statusUpdate = {
+      current: editForm.status,
+      notes: `Status updated to ${editForm.status}`, // optional note
+      changed_by: user?.username || user?.email || "admin" // use current user info
+    };
+    
+    // Build body: contact fields and status object
     const body = { 
       contact,
-      status: editForm.status
+      status: statusUpdate
     };
 
     try {
