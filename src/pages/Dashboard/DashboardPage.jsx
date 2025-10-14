@@ -382,19 +382,30 @@ export default function DashboardPage() {
         case 'email': vA=cA.email||''; vB=cB.email||''; break;
         case 'phone': vA=cA.phone||''; vB=cB.phone||''; break;
         case 'updated': {
-          // Convert to Date objects for accurate comparison
+          // Handle Firestore timestamp objects
           const dateA = a.metadata?.updated_at;
           const dateB = b.metadata?.updated_at;
-          console.log("=== Sorting updated case:", {
-            leadA_id: a.id,
-            dateA,
-            leadB_id: b.id, 
-            dateB,
-            dateA_parsed: dateA ? new Date(dateA) : null,
-            dateB_parsed: dateB ? new Date(dateB) : null
-          });
-          vA = dateA ? new Date(dateA).getTime() : 0;
-          vB = dateB ? new Date(dateB).getTime() : 0;
+          console.log("=== dateA structure:", dateA, "type:", typeof dateA);
+          console.log("=== dateB structure:", dateB, "type:", typeof dateB);
+          
+          // Handle Firestore timestamp - check if it has seconds property
+          let vA, vB;
+          if (dateA && typeof dateA === 'object' && dateA.seconds) {
+            vA = dateA.seconds * 1000; // Convert Firestore timestamp to milliseconds
+          } else if (dateA && typeof dateA === 'string') {
+            vA = new Date(dateA).getTime();
+          } else {
+            vA = 0;
+          }
+          
+          if (dateB && typeof dateB === 'object' && dateB.seconds) {
+            vB = dateB.seconds * 1000; // Convert Firestore timestamp to milliseconds
+          } else if (dateB && typeof dateB === 'string') {
+            vB = new Date(dateB).getTime();
+          } else {
+            vB = 0;
+          }
+          
           console.log("=== Final comparison values:", { vA, vB, dir });
           break;
         }
