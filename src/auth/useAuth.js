@@ -9,9 +9,18 @@ export function AuthProvider({ children }) {
 
   async function refreshMe() {
     try {
+      // Only try to refresh if we have a token
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setUser(null);
+        return;
+      }
+      
       const { data } = await api.get('/api/v1/auth/me');
       setUser(data.user);
     } catch {
+      // Clear invalid token
+      localStorage.removeItem('authToken');
       setUser(null);
     } finally {
       setLoading(false);
@@ -21,14 +30,15 @@ export function AuthProvider({ children }) {
   async function login(username, password) {
     try {
       const normUser = (username || '').trim().toLowerCase();
-      const { data } = await api.post('/api/v1/auth/login', { username: normUser, password }, { withCredentials: true });
-      // Hydrate via /me to ensure cookie session is valid and get canonical user object
-      try {
-        const me = await api.get('/api/v1/auth/me');
-        setUser(me.data.user);
-      } catch {
-        setUser(data.user || { username: normUser });
+      const { data } = await api.post('/api/v1/auth/login', { username: normUser, password });
+      
+      // Store the JWT token
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
       }
+      
+      // Set user from login response
+      setUser(data.user);
       return { ok: true };
     } catch (err) {
       const status = err?.response?.status;
@@ -39,13 +49,17 @@ export function AuthProvider({ children }) {
   }
 
   async function logout() {
-    try { await api.post('/api/v1/auth/logout'); } catch {}
+    // JWT is stateless, just remove token and clear user
+    localStorage.removeItem('authToken');
     setUser(null);
   }
 
   useEffect(() => {
     refreshMe();
-    const onUnauthorized = () => setUser(null);
+    const onUnauthorized = () => {
+      localStorage.removeItem('authToken');
+      setUser(null);
+    };
     window.addEventListener('app:unauthorized', onUnauthorized);
     return () => window.removeEventListener('app:unauthorized', onUnauthorized);
   }, []);
