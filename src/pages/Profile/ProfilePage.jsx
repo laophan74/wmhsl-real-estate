@@ -171,45 +171,123 @@ export default function ProfilePage() {
   ];
 
   return (
-    <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
-      <Box sx={{ width: 720, maxWidth: "100%", display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <Box sx={{ 
+      display: "flex", 
+      justifyContent: "center", 
+      p: { xs: 1, sm: 2, md: 3 },
+      minHeight: '100vh',
+      bgcolor: { xs: '#f9fafb', md: 'transparent' }
+    }}>
+      <Box sx={{ 
+        width: { xs: '100%', sm: '100%', md: 720 }, 
+        maxWidth: { xs: '100%', md: '720px' }, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        gap: { xs: 2, md: 3 }
+      }}>
         
         {/* Profile Info Card */}
-        <Card sx={{ boxShadow: "0 10px 30px rgba(0,0,0,0.08)", borderRadius: 2 }}>
-          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 2 }}>
+        <Card sx={{ 
+          boxShadow: { 
+            xs: "0 2px 8px rgba(0,0,0,0.1)", 
+            md: "0 10px 30px rgba(0,0,0,0.08)" 
+          }, 
+          borderRadius: { xs: 0, sm: 2 },
+          mx: { xs: 0, sm: 0 }
+        }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 800, 
+                mb: 2,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}
+            >
               Profile Information
             </Typography>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: { xs: 1.5, md: 2 } }} />
 
-            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "180px 1fr" }, rowGap: 1.5, columnGap: 2 }}>
+            <Box sx={{ 
+              display: "grid", 
+              gridTemplateColumns: { 
+                xs: "1fr", 
+                sm: "140px 1fr",
+                md: "180px 1fr" 
+              }, 
+              rowGap: { xs: 1, sm: 1.5 }, 
+              columnGap: { xs: 0, sm: 2 }
+            }}>
               {rows.map((r) => (
                 <React.Fragment key={r.label}>
-                  <Typography sx={{ color: "#6b7280" }}>{r.label}</Typography>
-                  <Typography sx={{ fontWeight: 600 }}>{String(r.value)}</Typography>
+                  <Typography sx={{ 
+                    color: "#6b7280",
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    fontWeight: { xs: 600, sm: 400 },
+                    mb: { xs: 0.5, sm: 0 }
+                  }}>
+                    {r.label}
+                  </Typography>
+                  <Typography sx={{ 
+                    fontWeight: 600,
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    wordBreak: 'break-word',
+                    mb: { xs: 1, sm: 0 }
+                  }}>
+                    {String(r.value)}
+                  </Typography>
                 </React.Fragment>
               ))}
             </Box>
 
             {user.role && (
-              <Box sx={{ mt: 3 }}>
-                <Chip label={String(user.role).toUpperCase()} color="primary" variant="outlined" />
+              <Box sx={{ mt: { xs: 2, md: 3 } }}>
+                <Chip 
+                  label={String(user.role).toUpperCase()} 
+                  color="primary" 
+                  variant="outlined"
+                  sx={{
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    height: { xs: 28, sm: 32 }
+                  }}
+                />
               </Box>
             )}
           </CardContent>
         </Card>
 
         {/* Change Password Card */}
-        <Card sx={{ boxShadow: "0 10px 30px rgba(0,0,0,0.08)", borderRadius: 2 }}>
-          <CardContent sx={{ p: { xs: 3, md: 4 } }}>
-            <Typography variant="h5" sx={{ fontWeight: 800, mb: 2 }}>
+        <Card sx={{ 
+          boxShadow: { 
+            xs: "0 2px 8px rgba(0,0,0,0.1)", 
+            md: "0 10px 30px rgba(0,0,0,0.08)" 
+          }, 
+          borderRadius: { xs: 0, sm: 2 },
+          mx: { xs: 0, sm: 0 }
+        }}>
+          <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+            <Typography 
+              variant="h5" 
+              sx={{ 
+                fontWeight: 800, 
+                mb: 2,
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }}
+            >
               Change Password
             </Typography>
 
-            <Divider sx={{ my: 2 }} />
+            <Divider sx={{ my: { xs: 1.5, md: 2 } }} />
 
-            <Box component="form" onSubmit={handlePasswordChange} sx={{ maxWidth: 400 }}>
+            <Box 
+              component="form" 
+              onSubmit={handlePasswordChange} 
+              sx={{ 
+                maxWidth: { xs: '100%', sm: 400 },
+                mx: { xs: 0, sm: 'auto', md: 0 }
+              }}
+            >
               <TextField
                 label="Current Password"
                 type="password"
@@ -220,6 +298,18 @@ export default function ProfilePage() {
                 error={!!passwordErrors.currentPassword}
                 helperText={passwordErrors.currentPassword}
                 disabled={changingPassword}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    height: { xs: '48px', sm: '56px' }
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  },
+                  '& .MuiFormHelperText-root': {
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }
+                }}
               />
               
               <TextField
@@ -232,6 +322,18 @@ export default function ProfilePage() {
                 error={!!passwordErrors.newPassword}
                 helperText={passwordErrors.newPassword || 'Minimum 6 characters'}
                 disabled={changingPassword}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    height: { xs: '48px', sm: '56px' }
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  },
+                  '& .MuiFormHelperText-root': {
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }
+                }}
               />
               
               <TextField
@@ -244,6 +346,18 @@ export default function ProfilePage() {
                 error={!!passwordErrors.confirmNewPassword}
                 helperText={passwordErrors.confirmNewPassword}
                 disabled={changingPassword}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    height: { xs: '48px', sm: '56px' }
+                  },
+                  '& .MuiInputLabel-root': {
+                    fontSize: { xs: '0.875rem', sm: '1rem' }
+                  },
+                  '& .MuiFormHelperText-root': {
+                    fontSize: { xs: '0.75rem', sm: '0.875rem' }
+                  }
+                }}
               />
 
               <Button
@@ -251,7 +365,12 @@ export default function ProfilePage() {
                 variant="contained"
                 fullWidth
                 disabled={changingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmNewPassword}
-                sx={{ mt: 3 }}
+                sx={{ 
+                  mt: { xs: 2, sm: 3 },
+                  py: { xs: 1, sm: 1.5 },
+                  fontSize: { xs: '0.875rem', sm: '1rem' },
+                  fontWeight: 600
+                }}
               >
                 {changingPassword ? 'Changing Password...' : 'Change Password'}
               </Button>
@@ -264,12 +383,28 @@ export default function ProfilePage() {
           open={toast.open}
           autoHideDuration={4000}
           onClose={() => setToast(prev => ({ ...prev, open: false }))}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          anchorOrigin={{ 
+            vertical: 'top', 
+            horizontal: 'center' 
+          }}
+          sx={{
+            top: { xs: 70, sm: 90 }, // Account for mobile header
+            '& .MuiSnackbarContent-root': {
+              mx: { xs: 1, sm: 0 },
+              minWidth: { xs: 'auto', sm: 'auto' }
+            }
+          }}
         >
           <Alert 
             severity={toast.type} 
             variant="filled" 
-            sx={{ width: '100%' }}
+            sx={{ 
+              width: '100%',
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              '& .MuiAlert-icon': {
+                fontSize: { xs: '1.25rem', sm: '1.5rem' }
+              }
+            }}
             onClose={() => setToast(prev => ({ ...prev, open: false }))}
           >
             {toast.message}
