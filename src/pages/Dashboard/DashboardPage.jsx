@@ -385,8 +385,17 @@ export default function DashboardPage() {
           // Convert to Date objects for accurate comparison
           const dateA = a.metadata?.updated_at;
           const dateB = b.metadata?.updated_at;
+          console.log("=== Sorting updated case:", {
+            leadA_id: a.id,
+            dateA,
+            leadB_id: b.id, 
+            dateB,
+            dateA_parsed: dateA ? new Date(dateA) : null,
+            dateB_parsed: dateB ? new Date(dateB) : null
+          });
           vA = dateA ? new Date(dateA).getTime() : 0;
           vB = dateB ? new Date(dateB).getTime() : 0;
+          console.log("=== Final comparison values:", { vA, vB, dir });
           break;
         }
         default: vA=''; vB='';
