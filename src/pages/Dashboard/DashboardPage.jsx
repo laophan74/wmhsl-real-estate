@@ -385,21 +385,19 @@ export default function DashboardPage() {
           // Handle Firestore timestamp objects
           const dateA = a.metadata?.updated_at;
           const dateB = b.metadata?.updated_at;
-          console.log("=== dateA structure:", dateA, "type:", typeof dateA);
-          console.log("=== dateB structure:", dateB, "type:", typeof dateB);
           
-          // Handle Firestore timestamp - check if it has seconds property
+          // Handle Firestore timestamp - check if it has _seconds property
           let vA, vB;
-          if (dateA && typeof dateA === 'object' && dateA.seconds) {
-            vA = dateA.seconds * 1000; // Convert Firestore timestamp to milliseconds
+          if (dateA && typeof dateA === 'object' && dateA._seconds) {
+            vA = dateA._seconds * 1000; // Convert Firestore timestamp to milliseconds
           } else if (dateA && typeof dateA === 'string') {
             vA = new Date(dateA).getTime();
           } else {
             vA = 0;
           }
           
-          if (dateB && typeof dateB === 'object' && dateB.seconds) {
-            vB = dateB.seconds * 1000; // Convert Firestore timestamp to milliseconds
+          if (dateB && typeof dateB === 'object' && dateB._seconds) {
+            vB = dateB._seconds * 1000; // Convert Firestore timestamp to milliseconds
           } else if (dateB && typeof dateB === 'string') {
             vB = new Date(dateB).getTime();
           } else {
