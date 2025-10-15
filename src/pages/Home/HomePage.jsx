@@ -127,7 +127,7 @@ export default function HomePage() {
         try {
           const controller = new AbortController();
           const t = setTimeout(() => controller.abort(), 5000);
-          const resMsg = await fetch(url, { signal: controller.signal, credentials: 'include' });
+          const resMsg = await fetch(url, { signal: controller.signal });
           clearTimeout(t);
           if (!resMsg.ok) {
             continue;
