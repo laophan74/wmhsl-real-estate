@@ -7,7 +7,7 @@ const Footer = () => {
     <Box component="footer" className="footer">
       <Container maxWidth="lg">
         <Typography variant="body1" align="center">
-          © {new Date().getFullYear()} WMHSL Real Estate.
+          © {new Date().getFullYear()} Stone Real Estate.
         </Typography>
         <Typography variant="body2" align="center" mt={1}>
           123 Paramatta Street, Sydney, Australia
