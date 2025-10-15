@@ -117,31 +117,26 @@ export default function HomePage() {
   setBuying("");
   setSuburbValue("");
 
-      // Fetch message first (with fallbacks); only then show the submitted message screen.
+      // Fetch message first from new public endpoint
       let finalMsg = "";
-      const endpoints = [
-        "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages/public?limit=1",
-        "https://wmhsl-real-estate-backend.vercel.app/api/v1/messages?limit=1&offset=0"
-      ];
-      for (const url of endpoints) {
-        try {
-          const controller = new AbortController();
-          const t = setTimeout(() => controller.abort(), 5000);
-          const resMsg = await fetch(url, { signal: controller.signal });
-          clearTimeout(t);
-          if (!resMsg.ok) {
-            continue;
-          }
+      try {
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), 5000);
+        const resMsg = await fetch("https://wmhsl-real-estate-backend.vercel.app/api/v1/messages/public-first", { 
+          signal: controller.signal 
+        });
+        clearTimeout(t);
+        
+        if (resMsg.ok) {
           const json = await resMsg.json();
-          const list = Array.isArray(json) ? json : (Array.isArray(json?.value) ? json.value : []);
-            if (!list.length) continue;
-          const first = list[0];
-          const text = ((first?.message ?? first?.content ?? first?.body ?? "") + "").trim();
-          if (text) {
-            finalMsg = text;
-            break;
+          // Handle different response structures
+          const messageText = json?.message || json?.content || json?.body || json?.text || "";
+          if (messageText && messageText.trim()) {
+            finalMsg = messageText.trim();
           }
-        } catch(_) { /* try next */ }
+        }
+      } catch (error) {
+        console.log("Could not fetch message from public-first endpoint:", error.message);
       }
       if (!finalMsg) finalMsg = "Thank you! We will get in touch soon.";
       setSubmittedMessageText(finalMsg);
