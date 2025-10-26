@@ -427,7 +427,7 @@ export default function DashboardPage() {
     setAdminPage(0);
   }, [adminQuery, adminSort]);
 
-  const BASE_URL = "https://wmhsl-real-estate-backend.vercel.app";
+  const BASE_URL = "https://stone-real-estate-real-capture-back.vercel.app";
 
   // Message edit helpers
   const openEditMessage = (msg) => {

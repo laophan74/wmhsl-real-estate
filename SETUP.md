@@ -47,7 +47,7 @@ The application will work with default settings, but you can customize the backe
 1. Create a `.env` file in the project root
 2. Add the following line:
    ```
-   VITE_API_BASE_URL=https://wmhsl-real-estate-backend.vercel.app
+   VITE_API_BASE_URL=https://stone-real-estate-real-capture-back.vercel.app
    ```
 
 ## Running the Application

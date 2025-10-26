@@ -90,7 +90,7 @@ export default function HomePage() {
       }
 
       const res = await fetch(
-        "https://wmhsl-real-estate-backend.vercel.app/api/v1/leads/public",
+        "https://stone-real-estate-real-capture-back.vercel.app/api/v1/leads/public",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -122,7 +122,7 @@ export default function HomePage() {
       try {
         const controller = new AbortController();
         const t = setTimeout(() => controller.abort(), 5000);
-        const resMsg = await fetch("https://wmhsl-real-estate-backend.vercel.app/api/v1/messages/public-first", { 
+        const resMsg = await fetch("https://stone-real-estate-real-capture-back.vercel.app/api/v1/messages/public-first", { 
           signal: controller.signal 
         });
         clearTimeout(t);
