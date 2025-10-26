@@ -17,6 +17,7 @@ import {
   InputLabel,
   FormHelperText,
 } from "@mui/material";
+import { API_CONFIG } from "../../config/api.js";
 import "./HomePage.css";
 
 
@@ -90,7 +91,7 @@ export default function HomePage() {
       }
 
       const res = await fetch(
-        "https://stone-real-estate-real-capture-back.vercel.app/api/v1/leads/public",
+        API_CONFIG.LEADS.PUBLIC,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -122,7 +123,7 @@ export default function HomePage() {
       try {
         const controller = new AbortController();
         const t = setTimeout(() => controller.abort(), 5000);
-        const resMsg = await fetch("https://stone-real-estate-real-capture-back.vercel.app/api/v1/messages/public-first", { 
+        const resMsg = await fetch(API_CONFIG.MESSAGES.PUBLIC_FIRST, { 
           signal: controller.signal 
         });
         clearTimeout(t);

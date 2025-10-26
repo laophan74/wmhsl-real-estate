@@ -1,11 +1,13 @@
 import axios from 'axios';
-
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'https://stone-real-estate-real-capture-back.vercel.app';
+import { API_CONFIG } from '../config/api.js';
 
 export const api = axios.create({
-  baseURL,
+  baseURL: API_CONFIG.BASE_URL,
   // Remove withCredentials since we're using JWT tokens now
 });
+
+// Export API_CONFIG for use in other files
+export { API_CONFIG };
 
 // Add token to all requests
 api.interceptors.request.use((config) => {

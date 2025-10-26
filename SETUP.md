@@ -50,6 +50,10 @@ The application will work with default settings, but you can customize the backe
    VITE_API_BASE_URL=https://stone-real-estate-real-capture-back.vercel.app
    ```
 
+**Note**: All backend URLs are centrally managed in `src/config/api.js`. To change the backend URL, you can either:
+- Update the environment variable `VITE_API_BASE_URL`
+- Or modify the fallback URL in `src/config/api.js`
+
 ## Running the Application
 
 ### Development Mode
@@ -87,7 +91,9 @@ wmhsl-real-estate/
 │   ├── components/         # Reusable UI components
 │   ├── pages/             # Application pages
 │   ├── auth/              # Authentication logic
-│   ├── lib/               # API configuration
+│   ├── lib/               # API client configuration
+│   ├── config/            # Centralized configuration
+│   │   └── api.js         # API URLs configuration
 │   └── assets/            # Images, CSS files
 ├── index.html             # Main HTML file
 ├── package.json           # Dependencies and scripts

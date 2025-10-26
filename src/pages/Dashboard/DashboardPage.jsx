@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import "./DashboardPage.css";
-import { api } from "../../lib/api";
+import { api, API_CONFIG } from "../../lib/api";
 import * as XLSX from 'xlsx';
 import { useAuth } from "../../auth/useAuth";
 
@@ -427,7 +427,7 @@ export default function DashboardPage() {
     setAdminPage(0);
   }, [adminQuery, adminSort]);
 
-  const BASE_URL = "https://stone-real-estate-real-capture-back.vercel.app";
+  const BASE_URL = API_CONFIG.BASE_URL;
 
   // Message edit helpers
   const openEditMessage = (msg) => {
